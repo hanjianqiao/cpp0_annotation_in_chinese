@@ -1,0 +1,1 @@
+Hello CPP0_annotation_in_Chinese
