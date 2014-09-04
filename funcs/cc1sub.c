@@ -22,6 +22,8 @@ int GOLD_read(const UCHAR *name, int len, UCHAR *b0);
 int GOLD_write_t(const UCHAR *name, int len, const UCHAR *p0);
 void GOL_sysabort(unsigned char termcode);
 
+
+/* 这个函数的功能是指定输出文件名 */
 void GOL_callmain(int argc, UCHAR **argv)
 {
 	UCHAR **argv1, **p;
@@ -29,6 +31,8 @@ void GOL_callmain(int argc, UCHAR **argv)
 	for (;;) {
 		if ((*p = *argv) == NULL)
 			break;
+
+		/* 如果是-o参数，将输出文件名设为该值，并除去该参数 */
 		if ((*argv)[0] == '-' && (*argv)[1] == 'o') {
 			GOL_outname = &((*argv)[2]);
 			if ((*argv)[2] == '\0') {
@@ -40,8 +44,17 @@ void GOL_callmain(int argc, UCHAR **argv)
 		p++;
 		argv++;
 	}
+
+	/* 执行无-o选项的main1
+	  * main1就是CPP0核心代码的开始了
+	  *
+	  *
+	 */
 	GOL_retcode = main1(p - argv1, argv1);
-	/* The output buffer */
+
+
+	
+	/* 下面的函数就是将处理过的数据输出到文件或者标准输出 */
 	GOL_sysabort(0);
 }
 
