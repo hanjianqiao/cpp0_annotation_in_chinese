@@ -1,3 +1,6 @@
+
+/* 以下的代码是文件驱动类似，我们暂时忽略 */
+
 void msgout(UCHAR *s)
 {
 	GOLD_write_t(NULL, GO_strlen(s), s);

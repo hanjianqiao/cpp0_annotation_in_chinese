@@ -45,6 +45,8 @@ void GOL_callmain0()
 	GOL_callmain(argc, argv);
 }
 
+/* 以下的代码是文件驱动类似，我们暂时忽略 */
+
 #include "others.h"
 #include "wfile_b.c"
 #include "others.c"

@@ -58,6 +58,8 @@ void GOL_callmain(int argc, UCHAR **argv)
 	GOL_sysabort(0);
 }
 
+/* 以下的代码是文件驱动类似，我们暂时忽略 */
+
 void GOL_close(GOL_FILE *gfp)
 {
 	if (--gfp->linkcount == 0) {

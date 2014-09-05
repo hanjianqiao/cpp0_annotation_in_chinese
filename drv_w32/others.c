@@ -1,5 +1,7 @@
 /* for w32 */
 
+/* 以下的代码是文件驱动类似，我们暂时忽略 */
+
 //	void GOLD_exit(int s);		/* Exit */
 int GOLD_getsize(const UCHAR *name); /* File size acquisition */
 int GOLD_read(const UCHAR *name, int len, UCHAR *b0);
