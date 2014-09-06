@@ -236,6 +236,7 @@ char **argv;
 static void
 setup_callbacks()
 {
+	/* 获取pfile的option指针 */
 	cpp_callbacks *cb = cpp_get_callbacks(pfile);
 
 	if (!options->no_output)
@@ -243,18 +244,27 @@ setup_callbacks()
 		cb->line_change = cb_line_change;
 		/* Don't emit #pragma or #ident directives if we are processing
 		assembly language; the assembler may choke on them.  */
+
+		/* 处理#pragma和#ident */
 		if (options->lang != CLK_ASM)
 		{
 			cb->ident = cb_ident;
 			cb->def_pragma = cb_def_pragma;
 		}
+
+		/* 当文件发生变化，
+		  * 即引用了其他的文件
+		  */
 		if (!options->no_line_commands)
 			cb->file_change = cb_file_change;
 	}
 
+	/* 好像下面的函数没有被用到 */
 	if (options->dump_includes)
 		cb->include = cb_include;
 
+
+	/* 下面的两个函数好像也没有用到 */
 	if (options->dump_macros == dump_names
 		|| options->dump_macros == dump_definitions)
 	{
@@ -392,6 +402,7 @@ const char *special_flags;
 
 /* Called when a line of output is started.  TOKEN is the first token
 of the line, and at end of file will be CPP_EOF.  */
+/* 当一个新行开始时调用这个函数，这个函数会输出一个换行符 */
 static void
 cb_line_change(pfile, token, parsing_args)
 cpp_reader *pfile ATTRIBUTE_UNUSED;
@@ -400,7 +411,6 @@ int parsing_args;
 {
 	if (token->type == CPP_EOF || parsing_args)
 		return;
-
 	maybe_print_line(print.map, token->line);
 	print.printed = 1;
 	print.prev = 0;
@@ -441,11 +451,12 @@ cpp_hashnode *node;
 	fputs("#define ", print.outf);
 
 	/* -dD command line option.  */
-	if (options->dump_macros == dump_definitions)
+	if (options->dump_macros == dump_definitions){
 		fputs((const char *)cpp_macro_definition(pfile, node), print.outf);
-	else
+	}
+	else{
 		fputs((const char *)NODE_NAME(node), print.outf);
-
+	}
 	putc('\n', print.outf);
 	print.line++;
 }
@@ -493,6 +504,7 @@ const struct line_map *map;
 	}
 	else
 	{
+		/* 在输出文件中输出引用进来的文件名和行号信息 */
 		/* Bring current file to correct line when entering a new file.  */
 		if (map->reason == LC_ENTER)
 			maybe_print_line(map - 1, map->from_line - 1);
