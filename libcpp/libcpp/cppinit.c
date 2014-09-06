@@ -946,9 +946,11 @@ hash_table *table;
 	_cpp_init_hashtable(pfile, table);
 
 	/* Set up the include search path now.  */
+	/* 设置引用路径 */
 	if (!CPP_OPTION(pfile, no_standard_includes))
 		init_standard_includes(pfile);
 
+	/* 合并引用路径，并去重 */
 	merge_include_chains(pfile);
 
 	/* With -v, print the list of dirs to search.  */

@@ -209,15 +209,26 @@ char **argv;
 
 		/* A successful cpp_read_main_file guarantees that we can call
 		cpp_scan_nooutput or cpp_get_token next.  */
-		/* 这里将预处理好的代码输出 */
+		/* 这里将预处理好的代码输出
+		  * 执行的应该是false的函数
+		  */
 		if (options->no_output)
+		{
 			cpp_scan_nooutput(pfile);
+		}
 		else
+		{
+			/* 我们要找的输出函数
+			  * 这个函数会调用此法分析函数
+			  * 这个函数会输出Token
+			  */
 			scan_translation_unit(pfile);
+		}
 
 		/* -dM command line option.  Should this be in cpp_finish?  */
 		if (options->dump_macros == dump_only)
 			cpp_forall_identifiers(pfile, dump_macro, NULL);
+
 
 		cpp_finish(pfile);
 	}
