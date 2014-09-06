@@ -970,6 +970,8 @@ insert_pragma_entry (pfile, chain, pragma, handler)
 /* Register a pragma NAME in namespace SPACE.  If SPACE is null, it
    goes in the global namespace.  HANDLER is the handler it will call,
    which must be non-NULL.  */
+
+	/* 将name添加到space中去，并设置handler */
 void
 cpp_register_pragma (pfile, space, name, handler)
      cpp_reader *pfile;
@@ -1015,6 +1017,7 @@ cpp_register_pragma (pfile, space, name, handler)
 }
 
 /* Register the pragmas the preprocessor itself handles.  */
+/* 添加编译指示 */
 void
 _cpp_init_internal_pragmas (pfile)
      cpp_reader *pfile;
@@ -1894,6 +1897,7 @@ _cpp_pop_buffer (pfile)
 }
 
 /* Enter all recognised directives in the hash table.  */
+/* 将所有指令符号添加到哈希表中 */
 void
 _cpp_init_directives (pfile)
      cpp_reader *pfile;
@@ -1901,9 +1905,12 @@ _cpp_init_directives (pfile)
   unsigned int i;
   cpp_hashnode *node;
 
+	/* 将所有的指令符(选项)添加到哈希表中 */
   for (i = 0; i < (unsigned int) N_DIRECTIVES; i++)
     {
+		/* 有则返回，无则加入 */
       node = cpp_lookup (pfile, dtable[i].name, dtable[i].length);
+	  /* 指令符索引从1开始，0号有特殊含义 */
       node->directive_index = i + 1;
     }
 }

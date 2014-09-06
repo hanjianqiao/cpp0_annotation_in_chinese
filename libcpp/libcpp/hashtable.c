@@ -75,6 +75,8 @@ calc_hash (str, len)
 
 /* Initialize an identifier hashtable.  */
 
+/* 建立哈希表 */
+
 hash_table *
 ht_create (order)
      unsigned int order;
@@ -146,6 +148,7 @@ ht_lookup (table, str, len, insert)
 	  if (insert == HT_ALLOCED)
 	    /* The string we search for was placed at the end of the
 	       obstack.  Release it.  */
+	       /* 释放str的空间 */
 	    obstack_free (&table->stack, (PTR) str);
 	  return node;
 	}
@@ -157,6 +160,7 @@ ht_lookup (table, str, len, insert)
   if (insert == HT_NO_INSERT)
     return NULL;
 
+	/* 调用哈希表的分配函数分配一个节点 */
   node = (*table->alloc_node) (table);
   table->entries[index] = node;
 
@@ -166,6 +170,7 @@ ht_lookup (table, str, len, insert)
   else
     HT_STR (node) = str;
 
+	/* 使用过的节点比例达到一定值时便要扩展哈希表了 */
   if (++table->nelements * 4 >= table->nslots * 3)
     /* Must expand the string table.  */
     ht_expand (table);

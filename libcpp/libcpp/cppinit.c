@@ -82,14 +82,14 @@ struct cpp_pending
 
 #ifdef __STDC__
 #define APPEND(pend, list, elt) \
-do {
+do {	\
 if (!(pend)->list##_head) (pend)->list##_head = (elt); \
 else (pend)->list##_tail->next = (elt); \
 	(pend)->list##_tail = (elt); \
 } while (0)
 #else
 #define APPEND(pend, list, elt) \
-do {
+do {	\
 if (!(pend)->list/**/_head) (pend)->list/**/_head = (elt); \
 else (pend)->list/**/_tail->next = (elt); \
 	(pend)->list/**/_tail = (elt); \
@@ -942,6 +942,7 @@ hash_table *table;
 	/* The front ends don't set up the hash table until they have
 	finished processing the command line options, so initializing the
 	hashtable is deferred until now.  */
+	/* 初始化哈希表，并将编译指令等添加到哈希表中 */
 	_cpp_init_hashtable(pfile, table);
 
 	/* Set up the include search path now.  */

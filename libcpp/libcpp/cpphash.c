@@ -55,19 +55,31 @@ _cpp_init_hashtable (pfile, table)
 
   if (table == NULL)
     {
+
+		/* 有了一个哈希表? */
       pfile->our_hashtable = 1;
+
+	  /* 新建哈希表，个数2的13次幂 */
       table = ht_create (13);	/* 8K (=2^13) entries.  */
+
+	  /* 指定分配哈希的函数 */
       table->alloc_node = (hashnode (*) PARAMS ((hash_table *))) alloc_node;
-      gcc_obstack_init (&pfile->hash_ob);
+
+
+	  gcc_obstack_init (&pfile->hash_ob);
     }
 
+	/* 将pfile和table关联起来 */
   table->pfile = pfile;
   pfile->hash_table = table;
 
   /* Now we can initialize things that use the hash table.  */
+  /* 将所有选项指令存到哈希表中去 */
   _cpp_init_directives (pfile);
+  /* 将默认的几个编译指示注册 */
   _cpp_init_internal_pragmas (pfile);
 
+	/* 将预处理的指示添加到哈希表中 */
   s = &pfile->spec_nodes;
   s->n_defined		= cpp_lookup (pfile, DSC("defined"));
   s->n_true		= cpp_lookup (pfile, DSC("true"));
