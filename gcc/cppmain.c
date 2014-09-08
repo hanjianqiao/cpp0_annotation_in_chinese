@@ -295,6 +295,7 @@ cpp_reader *pfile;
 	print.source = NULL;
 	for (;;)
 	{
+		/* 调用这个函数会向输出输出一个TOKEN */
 		const cpp_token *token = cpp_get_token(pfile);
 
 		if (token->type == CPP_PADDING)

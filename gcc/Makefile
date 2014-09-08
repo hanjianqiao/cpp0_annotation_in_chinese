@@ -38,4 +38,4 @@ clean :
 cpp0.exe : cppmain.o hashtable.o version.o
 	$(MAKEC) $(GODRVDIR)
 	$(LINK) -o $@ $(LINKOPT_CPP0) $(GODRVDIR)/cpp0main.obj cppmain.o \
-		$(LIBPATH)libcpp.lib hashtable.o version.o $(LIBS) $(GODRV) $(LINK_ADDLIB)
+		../libcpp/libcpp/libcpp.lib hashtable.o version.o $(LIBS) $(GODRV) $(LINK_ADDLIB)

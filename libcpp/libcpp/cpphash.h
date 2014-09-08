@@ -130,9 +130,11 @@ struct cpp_context
 struct lexer_state
 {
   /* Nonzero if first token on line is CPP_HASH.  */
+  /* 一行中第一个Token是CPP_HASH的话，这个值就不是0 */
   unsigned char in_directive;
 
   /* True if we are skipping a failed conditional group.  */
+  /* 如果忽略了某个组，这个值就是非零 */
   unsigned char skipping;
 
   /* Nonzero if in a directive that takes angle-bracketed headers.  */
@@ -229,9 +231,11 @@ struct cpp_buffer
 struct cpp_reader
 {
   /* Top of buffer stack.  */
+  /* 缓冲去指针，指向缓冲区开头 */
   cpp_buffer *buffer;
 
   /* Lexer state.  */
+  /* 词法分析的状态 */
   struct lexer_state state;
 
   /* Source line tracking.  */
