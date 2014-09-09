@@ -922,6 +922,10 @@ trigraph:
 		buffer->saved_flags = BOL;
 		if (!pfile->state.parsing_args && !pfile->state.in_directive)
 		{
+			/* 最后一行如果除换行符外还有其他符号，
+			  * 这就不是一个新行，可能会和后面的文件连在一起，
+			  * 引发错误
+			  */
 			if (buffer->cur != buffer->line_base)
 			{
 				/* Non-empty files should end in a newline.  Don't warn
