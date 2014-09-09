@@ -952,7 +952,7 @@ trigraph:
 	case '\n': case '\r':
 		handle_newline(pfile);
 		buffer->saved_flags = BOL;
-		/* 如果行的起始Token不是"#" */
+		/* 如果行的起始Token不是"#"，即不是预处理指令 */
 		if (!pfile->state.in_directive)
 		{
 			if (pfile->state.parsing_args == 2)
@@ -970,6 +970,9 @@ trigraph:
 
 	case '?':
 	case '\\':
+		/* '?' 可能是一个三木运算符的开始，
+		  * '\\' 可能是指明跳行
+		  */
 		/* These could start an escaped newline, or '?' a trigraph.  Let
 		skip_escaped_newlines do all the work.  */
 	{
