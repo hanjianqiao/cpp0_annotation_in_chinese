@@ -891,13 +891,17 @@ cpp_reader *pfile;
 	const unsigned char *comment_start;
 	cpp_token *result = pfile->cur_token++;
 
+/* 刷新行 */
 fresh_line:
 	buffer = pfile->buffer;
 	result->flags = buffer->saved_flags;
 	buffer->saved_flags = 0;
+
+/* 更新Token行 */
 update_tokens_line:
 	result->line = pfile->line;
 
+/* 跳过当前字符 */
 skipped_white:
 	c = *buffer->cur++;
 	result->col = CPP_BUF_COLUMN(buffer, buffer->cur);
@@ -944,6 +948,7 @@ trigraph:
 	case '\n': case '\r':
 		handle_newline(pfile);
 		buffer->saved_flags = BOL;
+		/* 如果行的起始Token不是"#" */
 		if (!pfile->state.in_directive)
 		{
 			if (pfile->state.parsing_args == 2)
