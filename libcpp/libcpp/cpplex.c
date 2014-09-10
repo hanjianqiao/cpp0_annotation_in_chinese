@@ -170,6 +170,7 @@ cpp_reader *pfile;
 lie in buffer->cur[-1].  Returns the next byte, which will be in
 buffer->cur[-1].  This routine performs preprocessing stages 1 and
 2 of the ISO C standard.  */
+/* 跳过转义换行 */
 static cppchar_t
 skip_escaped_newlines(pfile)
 cpp_reader *pfile;
