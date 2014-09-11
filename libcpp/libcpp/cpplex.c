@@ -170,12 +170,15 @@ cpp_reader *pfile;
 lie in buffer->cur[-1].  Returns the next byte, which will be in
 buffer->cur[-1].  This routine performs preprocessing stages 1 and
 2 of the ISO C standard.  */
-/* 跳过转义换行 */
+/* 跳过转义换行
+  * 转义的换行符可能是"??/\n" 也能是"\\\n"
+  */
 static cppchar_t
 skip_escaped_newlines(pfile)
 cpp_reader *pfile;
 {
 	cpp_buffer *buffer = pfile->buffer;
+	/* 取前一个字符 */
 	cppchar_t next = buffer->cur[-1];
 
 	/* Only do this if we apply stages 1 and 2.  */
@@ -186,12 +189,15 @@ cpp_reader *pfile;
 
 		do
 		{
+			/* 前一个字符是问号 */
 			if (next == '?')
 			{
+				/* 如果当前的字符不是问号，或者不是三目式 */
 				if (buffer->cur[0] != '?' || !trigraph_p(pfile))
 					break;
 
 				/* Translate the trigraph.  */
+				/* 转换三目式 */
 				next = _cpp_trigraph_map[buffer->cur[1]];
 				buffer->cur += 2;
 				if (next != '\\')
