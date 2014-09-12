@@ -1992,6 +1992,7 @@ struct dummy
 
 /* Create a new allocation buffer.  Place the control block at the end
 of the buffer, so that buffer overflows will cause immediate chaos.  */
+/* 申请一个新的_cpp_buff */
 static _cpp_buff *
 new_buff(len)
 size_t len;
@@ -2001,9 +2002,15 @@ size_t len;
 
 	if (len < MIN_BUFF_SIZE)
 		len = MIN_BUFF_SIZE;
+	/* 将len扩展到对其的大小 */
 	len = CPP_ALIGN(len, DEFAULT_ALIGNMENT);
 
+	/* 申请内存 */
 	base = xmalloc(len + sizeof (_cpp_buff));
+
+	/* 申请到空间底部为记录着信息的结构体，
+	  * 下面初始化这个结构体
+	  */
 	result = (_cpp_buff *)(base + len);
 	result->base = base;
 	result->cur = base;
@@ -2027,6 +2034,7 @@ _cpp_buff *buff;
 }
 
 /* Return a free buffer of size at least MIN_SIZE.  */
+/* 从pfile的空闲缓冲区链表中获取一个大小至少为MIN_SIZE的缓冲区 */
 _cpp_buff *
 _cpp_get_buff(pfile, min_size)
 cpp_reader *pfile;
@@ -2038,8 +2046,11 @@ size_t min_size;
 	{
 		size_t size;
 
+		/* 向系统申请一个新的缓冲区 */
 		if (*p == NULL)
 			return new_buff(min_size);
+
+		/* 寻找合适大小的空闲缓冲区 */
 		result = *p;
 		size = result->limit - result->base;
 		/* Return a buffer that's big enough, but don't waste one that's
@@ -2048,6 +2059,7 @@ size_t min_size;
 			break;
 	}
 
+	/* 将result指向的缓冲区从pfile的空闲缓冲区链表中抽取出来 */
 	*p = result->next;
 	result->next = NULL;
 	result->cur = result->base;
@@ -2084,10 +2096,14 @@ _cpp_buff **pbuff;
 size_t min_extra;
 {
 	_cpp_buff *new_buff, *old_buff = *pbuff;
+	/*扩展缓冲区大小*/
 	size_t size = EXTENDED_BUFF_SIZE(old_buff, min_extra);
 
+	/* 后去大小至少为size的缓冲区 */
 	new_buff = _cpp_get_buff(pfile, size);
+	/* 将原缓冲区数据复制到新的缓冲区 */
 	memcpy(new_buff->base, old_buff->cur, BUFF_ROOM(old_buff));
+	/* 更新指针 */
 	new_buff->next = old_buff;
 	*pbuff = new_buff;
 }
