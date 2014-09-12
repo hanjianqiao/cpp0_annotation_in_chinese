@@ -209,6 +209,7 @@ cpp_reader *pfile;
 
 			/* We have a backslash, and room for at least one more
 			character.  Skip horizontal whitespace.  */
+			/* 反斜杠后面可能跟着几个空白符，跳过他们 */
 			saved_cur = buffer->cur;
 			do
 			next1 = *buffer->cur++;
@@ -220,6 +221,7 @@ cpp_reader *pfile;
 				break;
 			}
 
+			/* 在非注释中如果反斜杠隔几个空格再遇到换行时会出现警告 */
 			if (saved_cur != buffer->cur - 1
 				&& !pfile->state.lexing_comment)
 				cpp_warning(pfile, "backslash and newline separated by space");
@@ -985,6 +987,7 @@ trigraph:
 	{
 				 unsigned int line = pfile->line;
 
+				/* 处理转义 */
 				 c = skip_escaped_newlines(pfile);
 				 if (line != pfile->line)
 				 {
@@ -1007,6 +1010,7 @@ trigraph:
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
 		result->type = CPP_NUMBER;
+		/* 读取数值 */
 		parse_number(pfile, &result->val.str, c, 0);
 		break;
 
