@@ -596,6 +596,7 @@ int leading_period;
 }
 
 /* Subroutine of parse_string.  Emits error for unterminated strings.  */
+/* 输出错误信息 */
 static void
 unterminated(pfile, term)
 cpp_reader *pfile;
@@ -612,6 +613,7 @@ int term;
 }
 
 /* Subroutine of parse_string.  */
+/* 终结符是否为非转义的终结符 */
 static int
 unescaped_terminator_p(pfile, dest)
 cpp_reader *pfile;
@@ -620,6 +622,7 @@ const unsigned char *dest;
 	const unsigned char *start, *temp;
 
 	/* In #include-style directives, terminators are not escapeable.  */
+	/* #include形式的指令中，结束符不可转义 */
 	if (pfile->state.angled_headers)
 		return 1;
 
@@ -627,6 +630,7 @@ const unsigned char *dest;
 
 	/* An odd number of consecutive backslashes represents an escaped
 	terminator.  */
+	/* 奇数个反斜杠的话就是转义 */
 	for (temp = dest; temp > start && temp[-1] == '\\'; temp--)
 		;
 
@@ -641,6 +645,12 @@ Multi-line strings are allowed, but they are deprecated.
 
 When this function returns, buffer->cur points to the next
 character to be processed.  */
+/* 解析字符串、字符常量、尖括号头文件名。
+  * 三目式、转义符等的处理。
+  * 
+  *
+  *
+  */
 static void
 parse_string(pfile, token, terminator)
 cpp_reader *pfile;
@@ -658,6 +668,7 @@ cppchar_t terminator;
 	for (;;)
 	{
 		/* We need room for another char, possibly the terminating NUL.  */
+		/* u_buff空间不足，扩展u_buff */
 		if ((size_t)(limit - dest) < 1)
 		{
 			size_t len_so_far = dest - BUFF_FRONT(pfile->u_buff);
@@ -673,6 +684,7 @@ cppchar_t terminator;
 
 		if (c == terminator)
 		{
+			/* 结束了一个字符串 */
 			if (unescaped_terminator_p(pfile, dest))
 				break;
 		}
@@ -681,6 +693,7 @@ cppchar_t terminator;
 			/* In assembly language, silently terminate string and
 			character literals at end of line.  This is a kludge
 			around not knowing where comments are.  */
+			/* 汇编语言中。。。 */
 			if (CPP_OPTION(pfile, lang) == CLK_ASM && terminator != '>')
 			{
 				buffer->cur--;
@@ -693,6 +706,7 @@ cppchar_t terminator;
 			extension, except in #include family directives.  */
 			if (terminator != '"' || pfile->state.angled_headers)
 			{
+				/* 如果不是字符串或者是引用的头文件名，那么垂直符号是不允许使用的 */
 				unterminated(pfile, terminator);
 				buffer->cur--;
 				break;
@@ -2113,7 +2127,7 @@ size_t min_extra;
 	/*扩展缓冲区大小*/
 	size_t size = EXTENDED_BUFF_SIZE(old_buff, min_extra);
 
-	/* 后去大小至少为size的缓冲区 */
+	/* 获取大小至少为size的缓冲区 */
 	new_buff = _cpp_get_buff(pfile, size);
 	/* 将原缓冲区数据复制到新的缓冲区 */
 	memcpy(new_buff->base, old_buff->cur, BUFF_ROOM(old_buff));
