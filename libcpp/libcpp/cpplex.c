@@ -714,6 +714,7 @@ cppchar_t terminator;
 
 			if (!warned_multi)
 			{
+				/* 遇到垂直符号，输出警告 */
 				warned_multi = true;
 				cpp_pedwarn(pfile, "multi-line string literals are deprecated");
 			}
@@ -725,11 +726,13 @@ cppchar_t terminator;
 			}
 
 			handle_newline(pfile);
+			/* 将垂直符号替换成换行符 */
 			c = '\n';
 		}
 		else if (c == '\0')
 		{
 			if (buffer->cur - 1 == buffer->rlimit)
+				/* 到文件尾，字符串未终结 */
 			{
 				unterminated(pfile, terminator);
 				buffer->cur--;
@@ -737,16 +740,19 @@ cppchar_t terminator;
 			}
 			if (!warned_nulls)
 			{
+				/* 发出警告 */
 				warned_nulls = true;
 				cpp_warning(pfile, "null character(s) preserved in literal");
 			}
 		}
-
+		/* 将处理好的字符填入dest */
 		*dest++ = c;
 	}
 
+	/* 添加终结符 */
 	*dest = '\0';
 
+	/* 保存字符串信息 */
 	token->val.str.text = BUFF_FRONT(pfile->u_buff);
 	token->val.str.len = dest - BUFF_FRONT(pfile->u_buff);
 	BUFF_FRONT(pfile->u_buff) = dest + 1;
@@ -1051,12 +1057,15 @@ trigraph:
 				{
 					/* 判断字符类型 */
 					result->type = (c == '"' ? CPP_WSTRING : CPP_WCHAR);
+					/* 解析字符串 */
 					parse_string(pfile, result, c);
 					break;
 				}
+				/* 解析字符串失败的话，恢复指针 */
 				buffer->cur = pos;
 	}
 		/* Fall through.  */
+		/* 不是字符串而是L开头的变量名之类的 */
 
 	start_ident:
 	case '_':
