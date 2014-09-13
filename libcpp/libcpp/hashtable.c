@@ -115,6 +115,7 @@ ht_destroy (table)
    string is alloced if INSERT is CPP_ALLOC, otherwise INSERT is
    CPP_ALLOCED and the item is assumed to be at the top of the
    obstack.  */
+   /* 查找节点，找不到时很可能分配新节点并返回 */
 hashnode
 ht_lookup (table, str, len, insert)
      hash_table *table;

@@ -424,6 +424,7 @@ seen:unseen identifiers in normal code; the distribution is
 Poisson-like).  Second most common case is a new identifier, not
 split and no dollar sign.  The other possibilities are rare and
 have been relegated to parse_identifier_slow.  */
+/* 解析标识符 */
 static cpp_hashnode *
 parse_identifier(pfile)
 cpp_reader *pfile;
@@ -433,23 +434,29 @@ cpp_reader *pfile;
 
 	/* Fast-path loop.  Skim over a normal identifier.
 	N.B. ISIDNUM does not include $.  */
+	/* 编译一遍可能的标识符字符串，看是否有特殊的符号 */
 	cur = pfile->buffer->cur;
 	while (ISIDNUM(*cur))
 		cur++;
 
 	/* Check for slow-path cases.  */
-	if (*cur == '?' || *cur == '\\' || *cur == '$')
+	if (*cur == '?' || *cur == '\\' || *cur == '$'){
+		/* 慢慢解析标识符，处理这些特殊符号 */
 		result = parse_identifier_slow(pfile, cur);
+	}
 	else
 	{
 		const U_CHAR *base = pfile->buffer->cur - 1;
+		/* 查找标识符在哈希表中的位置 */
 		result = (cpp_hashnode *)
 			ht_lookup(pfile->hash_table, base, cur - base, HT_ALLOC);
+		/* 标识符处理OK，更新指针 */
 		pfile->buffer->cur = cur;
 	}
 
 	/* Rarely, identifiers require diagnostics when lexed.
 	XXX Has to be forced out of the fast path.  */
+	/* 特殊情况 */
 	if (__builtin_expect((result->flags & NODE_DIAGNOSTIC)
 		&& !pfile->state.skipping, 0))
 	{
@@ -466,12 +473,21 @@ cpp_reader *pfile;
 			"__VA_ARGS__ can only appear in the expansion of a C99 variadic macro");
 	}
 
+	/* 返回结果 */
 	return result;
 }
 
 /* Slow path.  This handles identifiers which have been split, and
 identifiers which contain dollar signs.  The part of the identifier
 from PFILE->buffer->cur-1 to CUR has already been scanned.  */
+/* 慢速解析标识符的方法。这里处理被分割的标识符和含有$符号的标识符。
+  * 要处理的标识符的PFILE->buffer->cur-1 到 CUR的字节都已被扫描过了。
+  *
+  *
+  *
+  *
+  *
+  */
 static cpp_hashnode *
 parse_identifier_slow(pfile, cur)
 cpp_reader *pfile;
@@ -483,10 +499,14 @@ const U_CHAR *cur;
 	unsigned int c, saw_dollar = 0, len;
 
 	/* Copy the part of the token which is known to be okay.  */
+	/* 这是pfile->buffer->cur-1指向的是这个标识符的第一个字节
+	  * 因为cur指向的是第一个特殊字节，所以将已知OK的部分复制到stack中
+	  */
 	obstack_grow(stack, base, cur - base);
 
 	/* Now process the part which isn't.  We are looking at one of
 	'$', '\\', or '?' on entry to this loop.  */
+	/* 处理特殊字符 */
 	c = *cur++;
 	buffer->cur = cur;
 	do
@@ -495,6 +515,7 @@ const U_CHAR *cur;
 		{
 			obstack_1grow(stack, c);
 
+			/* 记录$出现次数 */
 			if (c == '$')
 				saw_dollar++;
 
@@ -509,11 +530,13 @@ const U_CHAR *cur;
 	} while (is_idchar(c));
 
 	/* Step back over the unwanted char.  */
+	/* 用于恢复 */
 	BACKUP();
 
 	/* $ is not an identifier character in the standard, but is commonly
 	accepted as an extension.  Don't warn about it in skipped
 	conditional blocks.  */
+	/* GCC里是可以在标识符中使用$符号的 */
 	if (saw_dollar && CPP_PEDANTIC(pfile) && !pfile->state.skipping)
 		cpp_pedwarn(pfile, "'$' character(s) in identifier");
 
@@ -1080,9 +1103,11 @@ trigraph:
 	case 'S': case 'T': case 'U': case 'V': case 'W': case 'X':
 	case 'Y': case 'Z':
 		result->type = CPP_NAME;
+		/* 解析标识符 */
 		result->val.node = parse_identifier(pfile);
 
 		/* Convert named operators to their proper types.  */
+		/* 转换有名字的操作符为适当的形式 */
 		if (result->val.node->flags & NODE_OPERATOR)
 		{
 			result->flags |= NAMED_OP;
