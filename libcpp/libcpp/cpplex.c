@@ -246,6 +246,7 @@ an arbitrarily long string of escaped newlines.  The common case of
 no trigraphs or escaped newlines falls through quickly.  On return,
 buffer->backup_to points to where to return to if the character is
 not to be processed.  */
+/* 获取一个字符，并做错误保存 */
 static cppchar_t
 get_effective_char(pfile)
 cpp_reader *pfile;
@@ -255,6 +256,7 @@ cpp_reader *pfile;
 
 	buffer->backup_to = buffer->cur;
 	next = *buffer->cur++;
+	/* 跳过转义换行等符号 */
 	if (__builtin_expect(next == '?' || next == '\\', 0))
 		next = skip_escaped_newlines(pfile);
 
@@ -526,6 +528,7 @@ const U_CHAR *cur;
 /* Parse a number, beginning with character C, skipping embedded
 backslash-newlines.  LEADING_PERIOD is non-zero if there was a "."
 before C.  Place the result in NUMBER.  */
+/* 将代表数值的字符串复制到u_buff 中 */
 static void
 parse_number(pfile, number, c, leading_period)
 cpp_reader *pfile;
@@ -540,6 +543,7 @@ int leading_period;
 	limit = BUFF_LIMIT(pfile->u_buff);
 
 	/* Place a leading period.  */
+	/* 在非对其缓冲区中加一个点 */
 	if (leading_period)
 	{
 		if (dest == limit)
@@ -553,9 +557,10 @@ int leading_period;
 
 	do
 	{
-		do
+		do /* 将连续的数值表达式复制到u_buff 中 */
 		{
 			/* Need room for terminating null.  */
+			/* 空间不足的话扩展空间 */
 			if ((size_t)(limit - dest) < 2)
 			{
 				size_t len_so_far = dest - BUFF_FRONT(pfile->u_buff);
@@ -569,18 +574,22 @@ int leading_period;
 		} while (is_numchar(c) || c == '.' || VALID_SIGN(c, dest[-1]));
 
 		/* Potential escaped newline?  */
-		buffer->backup_to = buffer->cur - 1;
+		/* 可能中途会遇到转义换行符，处理掉后继续 */
+		buffer->backup_to = buffer->cur - 1;  //保存指针，以免遇到意外的字符
 		if (c != '?' && c != '\\')
 			break;
 		c = skip_escaped_newlines(pfile);
 	} while (is_numchar(c) || c == '.' || VALID_SIGN(c, dest[-1]));
 
 	/* Step back over the unwanted char.  */
+	/* 意外时恢复指针，正常时指针也需要后移一个字节 */
 	BACKUP();
 
 	/* Null-terminate the number.  */
+	/* 添加字符串的结束符 */
 	*dest = '\0';
 
+	/* 用number字符串记录下信息 */
 	number->text = BUFF_FRONT(pfile->u_buff);
 	number->len = dest - number->text;
 	BUFF_FRONT(pfile->u_buff) = dest + 1;
@@ -756,6 +765,7 @@ const unsigned char *from;
 }
 
 /* Allocate COUNT tokens for RUN.  */
+/* 分配count个token空间 */
 void
 _cpp_init_tokenrun(run, count)
 tokenrun *run;
@@ -767,6 +777,7 @@ unsigned int count;
 }
 
 /* Returns the next tokenrun, or creates one if there is none.  */
+/* 如果tokenrun为空，则初始化一个新的tokenrun */
 static tokenrun *
 next_tokenrun(run)
 tokenrun *run;
@@ -1016,12 +1027,15 @@ trigraph:
 
 	case 'L':
 		/* 'L' may introduce wide characters or strings.  */
+		/* L字符可能是宽字符的开头 */
 	{
 				const unsigned char *pos = buffer->cur;
 
+				/* 获取一个字符 */
 				c = get_effective_char(pfile);
 				if (c == '\'' || c == '"')
 				{
+					/* 判断字符类型 */
 					result->type = (c == '"' ? CPP_WSTRING : CPP_WCHAR);
 					parse_string(pfile, result, c);
 					break;
