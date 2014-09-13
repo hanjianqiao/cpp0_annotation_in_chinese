@@ -266,6 +266,7 @@ cpp_reader *pfile;
 /* Skip a C-style block comment.  We find the end of the comment by
 seeing if an asterisk is before every '/' we encounter.  Returns
 non-zero if comment terminated by EOF, zero otherwise.  */
+/* 跳过块注释 */
 static int
 skip_block_comment(pfile)
 cpp_reader *pfile;
@@ -287,21 +288,23 @@ cpp_reader *pfile;
 		instead for efficiency.  */
 		if (c == '/')
 		{
+			/* 块注释结束标志 */
 			if (prevc == '*')
 				break;
 
 			/* Warn about potential nested comments, but not if the '/'
 			comes immediately before the true comment delimiter.
 			Don't bother to get it right across escaped newlines.  */
+			/* 警告包含的块注释 */
 			if (CPP_OPTION(pfile, warn_comments)
 				&& buffer->cur[0] == '*' && buffer->cur[1] != '/')
 				cpp_warning_with_line(pfile,
 				pfile->line, CPP_BUF_COL(buffer),
 				"\"/*\" within comment");
 		}
-		else if (is_vspace(c))
+		else if (is_vspace(c))  /* 换行符 */
 			handle_newline(pfile);
-		else if (c == '\t')
+		else if (c == '\t')		/* 制表符 */
 			adjust_column(pfile);
 	}
 
@@ -312,6 +315,7 @@ cpp_reader *pfile;
 /* Skip a C++ line comment, leaving buffer->cur pointing to the
 terminating newline.  Handles escaped newlines.  Returns non-zero
 if a multiline comment.  */
+/* 跳过行注释 */
 static int
 skip_line_comment(pfile)
 cpp_reader *pfile;
@@ -330,6 +334,7 @@ cpp_reader *pfile;
 		if (c == '?' || c == '\\')
 			c = skip_escaped_newlines(pfile);
 	} while (!is_vspace(c));
+	/* 直到换行，注释才结束 */
 
 	/* Step back over the newline, except at EOF.  */
 	buffer->cur--;
@@ -782,6 +787,7 @@ cppchar_t terminator;
 }
 
 /* The stored comment includes the comment start and any terminator.  */
+/* 保存注释 */
 static void
 save_comment(pfile, token, from)
 cpp_reader *pfile;
@@ -795,6 +801,7 @@ const unsigned char *from;
 
 	/* C++ comments probably (not definitely) have moved past a new
 	line, which we don't want to save in the comment.  */
+	/* 注释的最后一个是换行符等垂直符号的话舍弃掉 */
 	if (is_vspace(pfile->buffer->cur[-1]))
 		len--;
 	buffer = _cpp_unaligned_alloc(pfile, len);
@@ -1117,25 +1124,31 @@ trigraph:
 
 	case '\'':
 	case '"':
+		/* 解析字符或者字符串 */
 		result->type = c == '"' ? CPP_STRING : CPP_CHAR;
 		parse_string(pfile, result, c);
 		break;
 
 	case '/':
+		/* 可能是注释，行注释或者块注释 */
 		/* A potential block or line comment.  */
 		comment_start = buffer->cur;
+		/* 获取下一个字符 */
 		c = get_effective_char(pfile);
 
 		if (c == '*')
+			/* 下一个字符是*的话，应该是块注释 */
 		{
 			if (skip_block_comment(pfile))
 				cpp_error(pfile, "unterminated comment");
 		}
 		else if (c == '/' && (CPP_OPTION(pfile, cplusplus_comments)
 			|| CPP_IN_SYSTEM_HEADER(pfile)))
+			/* //是行注释 */
 		{
 			/* Warn about comments only if pedantically GNUC89, and not
 			in system headers.  */
+			/* 在GNUC89下并且不是系统头文件的话，这种注释要警告 */
 			if (CPP_OPTION(pfile, lang) == CLK_GNUC89 && CPP_PEDANTIC(pfile)
 				&& !buffer->warned_cplusplus_comments)
 			{
@@ -1150,11 +1163,13 @@ trigraph:
 				cpp_warning(pfile, "multi-line comment");
 		}
 		else if (c == '=')
+			/* /= 操作符 */
 		{
 			result->type = CPP_DIV_EQ;
 			break;
 		}
 		else
+			/* 除号 */
 		{
 			BACKUP();
 			result->type = CPP_DIV;
@@ -1162,12 +1177,14 @@ trigraph:
 		}
 
 		if (!pfile->state.save_comments)
+			/* 如果不需要保存注释，则刷新Token，解析下面的Token */
 		{
 			result->flags |= PREV_WHITE;
 			goto update_tokens_line;
 		}
 
 		/* Save the comment as a token in its own right.  */
+		/* 需要保存注释的话，将注释保存 */
 		save_comment(pfile, result, comment_start);
 		break;
 
@@ -2185,6 +2202,7 @@ _cpp_buff *buff;
 }
 
 /* Allocate permanent, unaligned storage of length LEN.  */
+/* 获取缓冲区，没必要是对齐的 */
 unsigned char *
 _cpp_unaligned_alloc(pfile, len)
 cpp_reader *pfile;
