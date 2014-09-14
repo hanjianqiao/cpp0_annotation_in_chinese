@@ -1190,13 +1190,17 @@ trigraph:
 
 	case '<':
 		if (pfile->state.angled_headers)
+			/* 如果是在#include后面，这个标识符会被置为非零，这应该是一个头文件名 */
 		{
 			result->type = CPP_HEADER_NAME;
+			/* 解析头文件名字符串，以'>' 为终结符 */
 			parse_string(pfile, result, '>');
 			break;
 		}
 
-		c = get_effective_char(pfile);
+		/* 其他情况下应该是逻辑运算符 */
+		c = get_effective_char(pfile);		//获取下一个字符
+		/* 通过下一个字符和下下个字符来判断该符号类型 */
 		if (c == '=')
 			result->type = CPP_LESS_EQ;
 		else if (c == '<')
@@ -1215,12 +1219,14 @@ trigraph:
 		}
 		else
 		{
+			/* 和后面的字符组不成符号，就是小于号 */
 			BACKUP();
 			result->type = CPP_LESS;
 		}
 		break;
 
 	case '>':
+		/* 判断符号类型 */
 		c = get_effective_char(pfile);
 		if (c == '=')
 			result->type = CPP_GREATER_EQ;
