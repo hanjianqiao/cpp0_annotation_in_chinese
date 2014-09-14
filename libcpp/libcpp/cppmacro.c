@@ -251,6 +251,12 @@ cpp_hashnode *node;
 backslashes and double quotes.  Non-printable characters are
 converted to octal.  DEST must be of sufficient size.  Returns
 a pointer to the end of the string.  */
+/* 将长度为len的字符串从src复制到dest处，这个过程中
+  * 会给\ 加上\变成\\，给"加上\变成\"
+  * 不可显示的字符将其转换成8进制，将其数值字符串存入dest
+  * 返回值是目标字符串的末尾
+  * 这个函数的功能实际上是给字符串加上双引号
+  */
 U_CHAR *
 cpp_quote_string(dest, src, len)
 U_CHAR *dest;
@@ -268,7 +274,7 @@ unsigned int len;
 		}
 		else
 		{
-			if (ISPRINT(c))
+			if (ISPRINT(c)) //判断是否是可显示的字符
 				*dest++ = c;
 			else
 			{
@@ -1023,7 +1029,7 @@ cpp_reader *pfile;
 		cpp_context *context = pfile->context;
 
 		/* Context->prev == 0 <=> base context.  */
-		if (!context->prev)
+		if (!context->prev)  //读取一个token
 			result = _cpp_lex_token(pfile);
 		else if (context->first.token != context->last.token)
 		{

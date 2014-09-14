@@ -350,12 +350,16 @@ const cpp_string *str;
 /* If the token read on logical line LINE needs to be output on a
 different line to the current one, output the required newlines or
 a line marker, and return 1.  Otherwise return 0.  */
+/* 如果token所在的逻辑行和实际的行不相同，
+  * 输出它应该在的行号
+  */
 static void
 maybe_print_line(map, line)
 const struct line_map *map;
 unsigned int line;
 {
 	/* End the previous line of text.  */
+	/* 前一行的东西都输出完毕了，输出换行符开始新行 */
 	if (print.printed)
 	{
 		putc('\n', print.outf);
@@ -363,6 +367,9 @@ unsigned int line;
 		print.printed = 0;
 	}
 
+	/* 目标行在当前行之后并且是8行之内，输出换行直到目标行。
+	  * 否则输出行号标识
+	  */
 	if (line >= print.line && line < print.line + 8)
 	{
 		while (line > print.line)
@@ -377,6 +384,9 @@ unsigned int line;
 
 /* Output a line marker for logical line LINE.  Special flags are "1"
 or "2" indicating entering or leaving a file.  */
+/* 这个函数是输出逻辑行号的
+  *
+  */
 static void
 print_line(map, line, special_flags)
 const struct line_map *map;
@@ -397,12 +407,16 @@ const char *special_flags;
 
 		/* cpp_quote_string does not nul-terminate, so we have to do it
 		ourselves.  */
+		/* 给字符串加上双引号，最坏的可能会使长度变为原来的4被，
+		  * 下面这个函数不会给字符串加上终结符，所以要留一个\0的空间
+		  */
 		p = cpp_quote_string(to_file_quoted,
 			(unsigned char *)map->to_file, to_file_len);
 		*p = '\0';
 		fprintf(print.outf, "# %u \"%s\"%s",
 			SOURCE_LINE(map, print.line), to_file_quoted, special_flags);
 
+		/* 输出系统头文件或者C 系统头文件的标志 */
 		if (map->sysp == 2)
 			fputs(" 3 4", print.outf);
 		else if (map->sysp == 1)
@@ -423,6 +437,7 @@ int parsing_args;
 {
 	if (token->type == CPP_EOF || parsing_args)
 		return;
+	/* 换行可能带来行号的无规律变化 */
 	maybe_print_line(print.map, token->line);
 	print.printed = 1;
 	print.prev = 0;
@@ -433,6 +448,7 @@ int parsing_args;
 	will provide a space if PREV_WHITE.  Don't bother trying to
 	reconstruct tabs; we can't get it right in general, and nothing
 	ought to care.  Some things do care; the fault lies with them.  */
+	/* 使用空格将token对其到其逻辑列上 */
 	if (token->col > 2)
 	{
 		unsigned int spaces = token->col - 2;
