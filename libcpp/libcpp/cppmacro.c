@@ -991,6 +991,7 @@ macro_arg *arg;
 /* Pop the current context off the stack, re-enabling the macro if the
 context represented a macro's replacement list.  The context
 structure is not freed so that we can re-use it later.  */
+/* 释放掉缓冲，并使能宏。但context结构保留下来。 */
 void
 _cpp_pop_context(pfile)
 cpp_reader *pfile;
@@ -1000,6 +1001,7 @@ cpp_reader *pfile;
 	if (context->macro)
 		context->macro->flags &= ~NODE_DISABLED;
 
+	/* 将context的缓冲释放掉 */
 	if (context->buff)
 		_cpp_release_buff(pfile, context->buff);
 

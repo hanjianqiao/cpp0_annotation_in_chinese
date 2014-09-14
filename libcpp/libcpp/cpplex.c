@@ -2127,6 +2127,7 @@ size_t len;
 }
 
 /* Place a chain of unwanted allocation buffers on the free list.  */
+/* 将buff指向的缓冲列表释放掉并添加到pfile的空闲缓冲链表中 */
 void
 _cpp_release_buff(pfile, buff)
 cpp_reader *pfile;

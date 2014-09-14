@@ -207,6 +207,7 @@ static const directive linemarker_dir =
 #define SEEN_EOL() (pfile->cur_token[-1].type == CPP_EOF)
 
 /* Skip any remaining tokens in a directive.  */
+/* 跳过指令中剩下的所有token */
 static void
 skip_rest_of_line(pfile)
 cpp_reader *pfile;
@@ -216,6 +217,7 @@ cpp_reader *pfile;
 		_cpp_pop_context(pfile);
 
 	/* Sweep up all tokens remaining on the line.  */
+	/* 没错，下面的函数只是会跳过一行代码 */
 	if (!SEEN_EOL())
 	while (_cpp_lex_token(pfile)->type != CPP_EOF)
 		;
@@ -248,6 +250,7 @@ cpp_reader *pfile;
 }
 
 /* Called when leaving a directive, _Pragma or command-line directive.  */
+/* 结束解析指令 */
 static void
 end_directive(pfile, skip_line)
 cpp_reader *pfile;
@@ -256,6 +259,7 @@ int skip_line;
 	/* We don't skip for an assembler #.  */
 	if (skip_line)
 	{
+		/* 跳过指令中剩下的token */
 		skip_rest_of_line(pfile);
 		if (!pfile->keep_tokens)
 		{
@@ -265,6 +269,7 @@ int skip_line;
 	}
 
 	/* Restore state.  */
+	/* 还原状态 */
 	pfile->state.save_comments = !CPP_OPTION(pfile, discard_comments);
 	pfile->state.in_directive = 0;
 	pfile->state.angled_headers = 0;
@@ -311,7 +316,7 @@ int indented;
 to save unnecessarily exporting dtable etc. to cpplex.c.  Returns
 non-zero if the line of tokens has been handled, zero if we should
 continue processing the line.  */
-/* 
+/* 如果是指令返回值就是非零，是汇编的立即数的话返回值就是零
   *
   *
   *
@@ -328,16 +333,18 @@ int indented;
 
 	/* 开始解析命令 */
 	start_directive(pfile);
-	/* 这里是递归调用，获取一个token */
+	/* 获取一个token */
 	dname = _cpp_lex_token(pfile);
 
 	if (dname->type == CPP_NAME)
+		/* 如果是标识符，看是否是指令并获取该指令指针 */
 	{
 		if (dname->val.node->directive_index)
 			dir = &dtable[dname->val.node->directive_index - 1];
 	}
 	/* We do not recognise the # followed by a number extension in
 	assembler code.  */
+	/* 汇编模式下不识别后面跟着数字的# */
 	else if (dname->type == CPP_NUMBER && CPP_OPTION(pfile, lang) != CLK_ASM)
 	{
 		dir = &linemarker_dir;
@@ -404,6 +411,7 @@ int indented;
 	else if (skip == 0)
 		_cpp_backup_tokens(pfile, 1);
 
+	/* 结束解析指令 */
 	end_directive(pfile, skip);
 	return skip;
 }
