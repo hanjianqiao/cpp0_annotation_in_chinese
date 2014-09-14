@@ -895,6 +895,7 @@ cpp_reader *pfile;
 		/* 如果pfile的lookahead等于0 */
 		else
 		{
+			/* 直接从缓冲中读取下一个token */
 			result = _cpp_lex_direct(pfile);
 		}
 
@@ -949,7 +950,7 @@ lex_expansion_token which doesn't care for any of these issues.
 When meeting a newline, returns CPP_EOF if parsing a directive,
 otherwise returns to the start of the token buffer if permissible.
 Returns the location of the lexed token.  */
-/* CPP0的此法分析函数
+/* CPP0的词法分析函数
   * 这个是主要的函数，还有些细节函数在这里都有调用到
   */
 cpp_token *
@@ -1242,6 +1243,9 @@ trigraph:
 		break;
 
 	case '%':
+		/* 这里是解析'%' 开头的符号，
+		  * 这里有些二目式也有四目式，具体可以参看维基百科Digraphs and trigraphs
+		  */
 		c = get_effective_char(pfile);
 		if (c == '=')
 			result->type = CPP_MOD_EQ;
@@ -1274,6 +1278,7 @@ trigraph:
 		break;
 
 	case '.':
+		/* 是'.'也可能是"..." gcc中的省略号 */
 		result->type = CPP_DOT;
 		c = get_effective_char(pfile);
 		if (c == '.')
@@ -1287,17 +1292,19 @@ trigraph:
 		}
 		/* All known character sets have 0...9 contiguous.  */
 		else if (ISDIGIT(c))
+			/* 是一个小数 */
 		{
 			result->type = CPP_NUMBER;
 			parse_number(pfile, &result->val.str, c, 1);
 		}
-		else if (c == '*' && CPP_OPTION(pfile, cplusplus))
+		else if (c == '*' && CPP_OPTION(pfile, cplusplus))  // ".*" ?
 			result->type = CPP_DOT_STAR;
 		else
 			BACKUP();
 		break;
 
 	case '+':
+		/* 匹配以加号开头的符号 */
 		c = get_effective_char(pfile);
 		if (c == '+')
 			result->type = CPP_PLUS_PLUS;
@@ -1311,6 +1318,7 @@ trigraph:
 		break;
 
 	case '-':
+		/* 匹配以减号开头的符号 */
 		c = get_effective_char(pfile);
 		if (c == '>')
 		{
@@ -1335,6 +1343,7 @@ trigraph:
 		break;
 
 	case '&':
+		/* 匹配以and符号开头的符号 */
 		c = get_effective_char(pfile);
 		if (c == '&')
 			result->type = CPP_AND_AND;
@@ -1348,6 +1357,7 @@ trigraph:
 		break;
 
 	case '|':
+		/* 匹配以or符号开头的符号 */
 		c = get_effective_char(pfile);
 		if (c == '|')
 			result->type = CPP_OR_OR;
@@ -1361,6 +1371,7 @@ trigraph:
 		break;
 
 	case ':':
+		/* 匹配以冒号开头的符号 */
 		c = get_effective_char(pfile);
 		if (c == ':' && CPP_OPTION(pfile, cplusplus))
 			result->type = CPP_SCOPE;
@@ -1376,12 +1387,14 @@ trigraph:
 		}
 		break;
 
+	/* 接下来匹配各种符号 */
 	case '*': IF_NEXT_IS('=', CPP_MULT_EQ, CPP_MULT); break;
 	case '=': IF_NEXT_IS('=', CPP_EQ_EQ, CPP_EQ); break;
 	case '!': IF_NEXT_IS('=', CPP_NOT_EQ, CPP_NOT); break;
 	case '^': IF_NEXT_IS('=', CPP_XOR_EQ, CPP_XOR); break;
 	case '#': IF_NEXT_IS('#', CPP_PASTE, CPP_HASH); break;
 
+	/* 下面是单个字符的符号 */
 	case '~': result->type = CPP_COMPL; break;
 	case ',': result->type = CPP_COMMA; break;
 	case '(': result->type = CPP_OPEN_PAREN; break;
@@ -1393,14 +1406,17 @@ trigraph:
 	case ';': result->type = CPP_SEMICOLON; break;
 
 		/* @ is a punctuator in Objective C.  */
+		/* @ 是Objective C 的符号*/
 	case '@': result->type = CPP_ATSIGN; break;
 
 	case '$':
+		/* dollar 符号虽然不是标准里面允许使用的，但是GCC 里面是可以使用的 */
 		if (CPP_OPTION(pfile, dollars_in_ident))
 			goto start_ident;
 		/* Fall through...  */
 
 	random_char:
+	/* 未知数随机字符 */
 	default:
 		result->type = CPP_OTHER;
 		result->val.c = c;
