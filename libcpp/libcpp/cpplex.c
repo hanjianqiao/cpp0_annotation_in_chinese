@@ -900,18 +900,24 @@ cpp_reader *pfile;
 		}
 
 		if (result->flags & BOL)
+			/* 如果token是该行第一个 */
 		{
 			/* Is this a directive.  If _cpp_handle_directive returns
 			false, it is an assembler #.  */
+			/* 第一个token是#开头的指令的话,直接进行下一轮解析，
+			  * 有可能这个#是汇编语言中的立即数的开始
+			  */
 			if (result->type == CPP_HASH
 				&& !pfile->state.parsing_args
 				&& _cpp_handle_directive(pfile, result->flags & PREV_WHITE))
 				continue;
+			/* 该行的第一个token，有义务对前一行的换行进行处理 */
 			if (pfile->cb.line_change && !pfile->state.skipping)
 				(*pfile->cb.line_change)(pfile, result, pfile->state.parsing_args);
 		}
 
 		/* We don't skip tokens in directives.  */
+		/* 指令中的token不能忽略 */
 		if (pfile->state.in_directive)
 			break;
 

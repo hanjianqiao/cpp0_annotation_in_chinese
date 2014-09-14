@@ -232,15 +232,18 @@ cpp_reader *pfile;
 }
 
 /* Called when entering a directive, _Pragma or command-line directive.  */
+/* 开始一个指令的分析 */
 static void
 start_directive(pfile)
 cpp_reader *pfile;
 {
 	/* Setup in-directive state.  */
+	/* 设置状态 */
 	pfile->state.in_directive = 1;
 	pfile->state.save_comments = 0;
 
 	/* Some handlers need the position of the # for diagnostics.  */
+	/* 记录一下指令所在的行号 */
 	pfile->directive_line = pfile->line;
 }
 
@@ -308,6 +311,12 @@ int indented;
 to save unnecessarily exporting dtable etc. to cpplex.c.  Returns
 non-zero if the line of tokens has been handled, zero if we should
 continue processing the line.  */
+/* 
+  *
+  *
+  *
+  *
+  */
 int
 _cpp_handle_directive(pfile, indented)
 cpp_reader *pfile;
@@ -317,7 +326,9 @@ int indented;
 	const cpp_token *dname;
 	int skip = 1;
 
+	/* 开始解析命令 */
 	start_directive(pfile);
+	/* 这里是递归调用，获取一个token */
 	dname = _cpp_lex_token(pfile);
 
 	if (dname->type == CPP_NAME)
