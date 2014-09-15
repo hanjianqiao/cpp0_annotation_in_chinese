@@ -411,6 +411,7 @@ int indented;
 	else if (skip == 0)
 		_cpp_backup_tokens(pfile, 1);
 
+	/* 汇编中的立即数的话，不进行处理，直接跳转到这里 */
 	/* 结束解析指令 */
 	end_directive(pfile, skip);
 	return skip;
@@ -737,6 +738,7 @@ unsigned int len;
 /* Subroutine of do_line and do_linemarker.  Convert a number in STR,
 of length LEN, to binary; store it in NUMP, and return 0 if the
 number was well-formed, 1 if not.  Temporary, hopefully.  */
+/* 转化字符串为数值(十进制) */
 static int
 strtoul_for_line(str, len, nump)
 const U_CHAR *str;
@@ -807,6 +809,7 @@ cpp_reader *pfile;
 /* Interpret the # 44 "file" [flags] notation, which has slightly
 different syntax and semantics from #line:  Flags are allowed,
 and we never complain about the line number being too big.  */
+/* 翻译行号注释 */
 static void
 do_linemarker(pfile)
 cpp_reader *pfile;
@@ -821,10 +824,13 @@ cpp_reader *pfile;
 	/* Back up so we can get the number again.  Putting this in
 	_cpp_handle_directive risks two calls to _cpp_backup_tokens in
 	some circumstances, which can segfault.  */
+	/* 保存token */
 	_cpp_backup_tokens(pfile, 1);
 
 	/* #line commands expand macros.  */
-	token = cpp_get_token(pfile);
+	/* 扩展#line指令的宏 */
+	token = cpp_get_token(pfile);  //获取保存的token
+	/* 如果token不是数值也不能转换成数值，输出错误信息 */
 	if (token->type != CPP_NUMBER
 		|| strtoul_for_line(token->val.str.text, token->val.str.len,
 		&new_lineno))

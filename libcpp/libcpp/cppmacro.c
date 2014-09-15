@@ -1115,6 +1115,7 @@ cpp_reader *pfile;
 
 /* Step back one (or more) tokens.  Can only step mack more than 1 if
 they are from the lexer, and not from macro expansion.  */
+/* token指针向后退几个位置。但是只有在lexer里才能退多于1步 */
 void
 _cpp_backup_tokens(pfile, count)
 cpp_reader *pfile;
@@ -1122,10 +1123,12 @@ unsigned int count;
 {
 	if (pfile->context->prev == NULL)
 	{
+		/* 记录下后退了几个token */
 		pfile->lookaheads += count;
 		while (count--)
 		{
 			pfile->cur_token--;
+			/* 退到了当前tokenrun的第一个token，再退就是前一个tokenrun的末尾了 */
 			if (pfile->cur_token == pfile->cur_run->base
 				/* Possible with -fpreprocessed and no leading #line.  */
 				&& pfile->cur_run->prev != NULL)
@@ -1139,6 +1142,7 @@ unsigned int count;
 	{
 		if (count != 1)
 			abort();
+		/* 判断是哪一种token */
 		if (pfile->context->direct_p)
 			pfile->context->first.token--;
 		else

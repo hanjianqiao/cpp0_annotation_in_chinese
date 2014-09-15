@@ -1434,6 +1434,7 @@ trigraph:
 
 /* An upper bound on the number of bytes needed to spell TOKEN,
 including preceding whitespace.  */
+/* 获取token的长度，不同类型的token有不同的标准 */
 unsigned int
 cpp_token_len(token)
 const cpp_token *token;
@@ -1528,6 +1529,7 @@ unsigned char *buffer;
 
 /* Returns TOKEN spelt as a null-terminated string.  The string is
 freed when the reader is destroyed.  Useful for diagnostics.  */
+/* 将token处理成有终结符的字符串，诊断时使用 */
 unsigned char *
 cpp_token_as_text(pfile, token)
 cpp_reader *pfile;
