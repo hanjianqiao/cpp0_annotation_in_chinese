@@ -1776,7 +1776,7 @@ mapping.  Is this ever wrong?
 PC points to the 'u' or 'U', PSTR is points to the byte after PC,
 LIMIT is the end of the string or charconst.  PSTR is updated to
 point after the UCS on return, and the UCS is written into PC.  */
-
+/* 解析ucs字符串 */
 static int
 maybe_read_ucs(pfile, pstr, limit, pc)
 cpp_reader *pfile;
@@ -1789,14 +1789,18 @@ unsigned int *pc;
 	unsigned int c = *pc, length;
 
 	/* Only attempt to interpret a UCS for C++ and C99.  */
+	/* C++ 和C99以上才支持*/
 	if (!(CPP_OPTION(pfile, cplusplus) || CPP_OPTION(pfile, c99)))
 		return 1;
 
+	/* 歧义警告 */
 	if (CPP_WTRADITIONAL(pfile))
 		cpp_warning(pfile, "the meaning of '\\%c' varies with -traditional", c);
 
+	/* 大小u */
 	length = (c == 'u' ? 4 : 8);
 
+	/* 字符长度不能太小 */
 	if ((size_t)(limit - p) < length)
 	{
 		cpp_error(pfile, "incomplete universal-character-name");
@@ -1808,10 +1812,11 @@ unsigned int *pc;
 		for (; length; length--, p++)
 		{
 			c = *p;
-			if (ISXDIGIT(c))
+			if (ISXDIGIT(c))  //判断是否为十六进制的数字
 				code = (code << 4) + hex_digit_value(c);
 			else
 			{
+				/* 出现了意外的字符 */
 				cpp_error(pfile,
 					"non-hex digit '%c' in universal-character-name", c);
 				/* We shouldn't skip in case there are multibyte chars.  */
@@ -1898,6 +1903,7 @@ int traditional;
 
 	/* 转义的U可能是ucs的开始 */
 	case 'u': case 'U':
+		/* 成功返回0，失败返回1 */
 		unknown = maybe_read_ucs(pfile, &str, limit, &c);
 		break;
 

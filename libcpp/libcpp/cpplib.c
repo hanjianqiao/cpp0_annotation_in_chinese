@@ -849,6 +849,7 @@ cpp_reader *pfile;
 	if (token->type == CPP_STRING)
 		/* 字符串类型的token */
 	{
+		/* 将表示的字符串转换成实际代表文件名的字符串 */
 		new_file = (const char *)dequote_string(pfile, token->val.str.text,
 			token->val.str.len);
 		new_sysp = 0;
