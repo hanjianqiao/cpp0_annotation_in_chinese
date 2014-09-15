@@ -704,12 +704,14 @@ unsigned int last;
 /* Subroutine of do_line and do_linemarker.  Returns a version of STR
 which has a NUL terminator and all escape sequences converted to
 their equivalents.  Temporary, hopefully.  */
+/* 将双引号表示的字符串转成机器内部的字符串*/
 static U_CHAR *
 dequote_string(pfile, str, len)
 cpp_reader *pfile;
 const U_CHAR *str;
 unsigned int len;
 {
+	/* 获取空间，多一个字节保存终结符 */
 	U_CHAR *result = _cpp_unaligned_alloc(pfile, len + 1);
 	U_CHAR *dst = result;
 	const U_CHAR *limit = str + len;
@@ -723,6 +725,7 @@ unsigned int len;
 	else
 		mask = ~(unsigned HOST_WIDE_INT)0;
 
+	/* 挨个处理字符 */
 	while (str < limit)
 	{
 		c = *str++;
@@ -809,7 +812,7 @@ cpp_reader *pfile;
 /* Interpret the # 44 "file" [flags] notation, which has slightly
 different syntax and semantics from #line:  Flags are allowed,
 and we never complain about the line number being too big.  */
-/* 翻译行号注释 */
+/* 翻译行号注释，处理的是# 44 "<stdio.h>" 这种形式的指令 */
 static void
 do_linemarker(pfile)
 cpp_reader *pfile;
@@ -835,13 +838,16 @@ cpp_reader *pfile;
 		|| strtoul_for_line(token->val.str.text, token->val.str.len,
 		&new_lineno))
 	{
+		/* 将无法处理的token保存成字符串型 */
 		cpp_error(pfile, "\"%s\" after # is not a positive integer",
 			cpp_token_as_text(pfile, token));
 		return;
 	}
 
+	/* 获取下一个token ，这个token应该是表示引用的头文件名的字符串*/
 	token = cpp_get_token(pfile);
 	if (token->type == CPP_STRING)
+		/* 字符串类型的token */
 	{
 		new_file = (const char *)dequote_string(pfile, token->val.str.text,
 			token->val.str.len);
@@ -871,12 +877,16 @@ cpp_reader *pfile;
 	}
 	else if (token->type != CPP_EOF)
 	{
+		/* 头文件名有误 */
 		cpp_error(pfile, "\"%s\" is not a valid filename",
 			cpp_token_as_text(pfile, token));
 		return;
 	}
 
+	/* 对于# 44 "<stdio.h>" 这样的指令来说，该行剩下的token都是没有用的 */
 	skip_rest_of_line(pfile);
+	
+	/* 引用文件要处理文件变化，进入或退出一个文件 */
 	_cpp_do_file_change(pfile, reason, new_file, new_lineno, new_sysp);
 }
 

@@ -1744,6 +1744,7 @@ FILE *fp;
 }
 
 /* Returns the value of a hexadecimal digit.  */
+/* 返回字符代表的十六进制数值 */
 static unsigned int
 hex_digit_value(c)
 unsigned int c;
@@ -1849,6 +1850,7 @@ destination type (char or wchar_t).  TRADITIONAL, if true, does not
 interpret escapes that did not exist in traditional C.
 
 Handles all relevant diagnostics.  */
+/* 处理转义字符序列，返回其值，mask指明是哪种宽度的字符 */
 unsigned int
 cpp_parse_escape(pfile, pstr, limit, mask, traditional)
 cpp_reader *pfile;
@@ -1861,6 +1863,7 @@ int traditional;
 	const unsigned char *str = *pstr;
 	unsigned int c = *str++;
 
+	/* 事先已经读入了反斜杠 */
 	switch (c)
 	{
 	case '\\': case '\'': case '"': case '?': break;
@@ -1871,12 +1874,14 @@ int traditional;
 	case 't': c = TARGET_TAB;	  break;
 	case 'v': c = TARGET_VT;	  break;
 
+	/* 这几个符号的转义是特殊的 */
 	case '(': case '{': case '[': case '%':
 		/* '\(', etc, are used at beginning of line to avoid confusing Emacs.
 		'\%' is used to prevent SCCS from getting confused.  */
 		unknown = CPP_PEDANTIC(pfile);
 		break;
 
+	/* 转义的a有歧义 */
 	case 'a':
 		if (CPP_WTRADITIONAL(pfile))
 			cpp_warning(pfile, "the meaning of '\\a' varies with -traditional");
@@ -1884,16 +1889,19 @@ int traditional;
 			c = TARGET_BELL;
 		break;
 
+	/* 不是标准的转义 */
 	case 'e': case 'E':
 		if (CPP_PEDANTIC(pfile))
 			cpp_pedwarn(pfile, "non-ISO-standard escape sequence, '\\%c'", c);
 		c = TARGET_ESC;
 		break;
 
+	/* 转义的U可能是ucs的开始 */
 	case 'u': case 'U':
 		unknown = maybe_read_ucs(pfile, &str, limit, &c);
 		break;
 
+	/* 16机制数，这个也有歧义 */
 	case 'x':
 		if (CPP_WTRADITIONAL(pfile))
 			cpp_warning(pfile, "the meaning of '\\x' varies with -traditional");
@@ -1914,9 +1922,11 @@ int traditional;
 				digits_found = 1;
 			}
 
+			/* 转义x要跟着数字 */
 			if (!digits_found)
 				cpp_error(pfile, "\\x used with no following hex digits");
 
+			/* 检查数据大小关系 */
 			if (overflow | (i != (i & mask)))
 			{
 				cpp_pedwarn(pfile, "hex escape sequence out of range");
@@ -1926,6 +1936,7 @@ int traditional;
 		}
 		break;
 
+	/* 转义的数字 */
 	case '0':  case '1':  case '2':  case '3':
 	case '4':  case '5':  case '6':  case '7':
 	{
@@ -1957,15 +1968,18 @@ int traditional;
 
 	if (unknown)
 	{
+		/* 未知的转义字符 */
 		if (ISGRAPH(c))
 			cpp_pedwarn(pfile, "unknown escape sequence '\\%c'", c);
 		else
 			cpp_pedwarn(pfile, "unknown escape sequence: '\\%03o'", c);
 	}
 
+	/* 如果数值比掩码还大 */
 	if (c > mask)
 		cpp_pedwarn(pfile, "escape sequence out of range for character");
 
+	/* 更新指针到应该的位置 */
 	*pstr = str;
 	return c;
 }
