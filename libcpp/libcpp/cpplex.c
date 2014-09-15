@@ -171,8 +171,8 @@ lie in buffer->cur[-1].  Returns the next byte, which will be in
 buffer->cur[-1].  This routine performs preprocessing stages 1 and
 2 of the ISO C standard.  */
 /* 跳过转义换行
-  * 转义的换行符可能是"??/\n" 也能是"\\\n"
-  */
+* 转义的换行符可能是"??/\n" 也能是"\\\n"
+*/
 static cppchar_t
 skip_escaped_newlines(pfile)
 cpp_reader *pfile;
@@ -486,13 +486,13 @@ cpp_reader *pfile;
 identifiers which contain dollar signs.  The part of the identifier
 from PFILE->buffer->cur-1 to CUR has already been scanned.  */
 /* 慢速解析标识符的方法。这里处理被分割的标识符和含有$符号的标识符。
-  * 要处理的标识符的PFILE->buffer->cur-1 到 CUR的字节都已被扫描过了。
-  *
-  *
-  *
-  *
-  *
-  */
+* 要处理的标识符的PFILE->buffer->cur-1 到 CUR的字节都已被扫描过了。
+*
+*
+*
+*
+*
+*/
 static cpp_hashnode *
 parse_identifier_slow(pfile, cur)
 cpp_reader *pfile;
@@ -505,8 +505,8 @@ const U_CHAR *cur;
 
 	/* Copy the part of the token which is known to be okay.  */
 	/* 这是pfile->buffer->cur-1指向的是这个标识符的第一个字节
-	  * 因为cur指向的是第一个特殊字节，所以将已知OK的部分复制到stack中
-	  */
+	* 因为cur指向的是第一个特殊字节，所以将已知OK的部分复制到stack中
+	*/
 	obstack_grow(stack, base, cur - base);
 
 	/* Now process the part which isn't.  We are looking at one of
@@ -674,11 +674,11 @@ Multi-line strings are allowed, but they are deprecated.
 When this function returns, buffer->cur points to the next
 character to be processed.  */
 /* 解析字符串、字符常量、尖括号头文件名。
-  * 三目式、转义符等的处理。
-  * 
-  *
-  *
-  */
+* 三目式、转义符等的处理。
+*
+*
+*
+*/
 static void
 parse_string(pfile, token, terminator)
 cpp_reader *pfile;
@@ -905,8 +905,8 @@ cpp_reader *pfile;
 			/* Is this a directive.  If _cpp_handle_directive returns
 			false, it is an assembler #.  */
 			/* 第一个token是#开头的指令的话,直接进行下一轮解析，
-			  * 有可能这个#是汇编语言中的立即数的开始
-			  */
+			* 有可能这个#是汇编语言中的立即数的开始
+			*/
 			if (result->type == CPP_HASH
 				&& !pfile->state.parsing_args
 				&& _cpp_handle_directive(pfile, result->flags & PREV_WHITE))
@@ -935,7 +935,7 @@ cpp_reader *pfile;
 
 #define IF_NEXT_IS(CHAR, THEN_TYPE, ELSE_TYPE)	\
 do {\
-\
+	\
 if (get_effective_char(pfile) == CHAR)	\
 	result->type = THEN_TYPE;			\
 else					\
@@ -945,40 +945,40 @@ else					\
 }						\
 } while (0)
 
-/* Lex a token into pfile->cur_token, which is also incremented, to
-get diagnostics pointing to the correct location.
+	/* Lex a token into pfile->cur_token, which is also incremented, to
+	get diagnostics pointing to the correct location.
 
-Does not handle issues such as token lookahead, multiple-include
-optimisation, directives, skipping etc.  This function is only
-suitable for use by _cpp_lex_token, and in special cases like
-lex_expansion_token which doesn't care for any of these issues.
+	Does not handle issues such as token lookahead, multiple-include
+	optimisation, directives, skipping etc.  This function is only
+	suitable for use by _cpp_lex_token, and in special cases like
+	lex_expansion_token which doesn't care for any of these issues.
 
-When meeting a newline, returns CPP_EOF if parsing a directive,
-otherwise returns to the start of the token buffer if permissible.
-Returns the location of the lexed token.  */
-/* CPP0的词法分析函数
-  * 这个是主要的函数，还有些细节函数在这里都有调用到
-  */
-cpp_token *
-_cpp_lex_direct(pfile)
-cpp_reader *pfile;
+	When meeting a newline, returns CPP_EOF if parsing a directive,
+	otherwise returns to the start of the token buffer if permissible.
+	Returns the location of the lexed token.  */
+	/* CPP0的词法分析函数
+	* 这个是主要的函数，还有些细节函数在这里都有调用到
+	*/
+	cpp_token *
+	_cpp_lex_direct(pfile)
+	cpp_reader *pfile;
 {
 	cppchar_t c;
 	cpp_buffer *buffer;
 	const unsigned char *comment_start;
 	cpp_token *result = pfile->cur_token++;
 
-/* 刷新行 */
+	/* 刷新行 */
 fresh_line:
 	buffer = pfile->buffer;
 	result->flags = buffer->saved_flags;
 	buffer->saved_flags = 0;
 
-/* 更新Token行 */
+	/* 更新Token行 */
 update_tokens_line:
 	result->line = pfile->line;
 
-/* 跳过当前字符 */
+	/* 跳过当前字符 */
 skipped_white:
 	c = *buffer->cur++;
 	result->col = CPP_BUF_COLUMN(buffer, buffer->cur);
@@ -1000,9 +1000,9 @@ trigraph:
 		if (!pfile->state.parsing_args && !pfile->state.in_directive)
 		{
 			/* 最后一行如果除换行符外还有其他符号，
-			  * 这就不是一个新行，可能会和后面的文件连在一起，
-			  * 引发错误
-			  */
+			* 这就不是一个新行，可能会和后面的文件连在一起，
+			* 引发错误
+			*/
 			if (buffer->cur != buffer->line_base)
 			{
 				/* Non-empty files should end in a newline.  Don't warn
@@ -1048,14 +1048,14 @@ trigraph:
 	case '?':
 	case '\\':
 		/* '?' 可能是一个三木运算符的开始，
-		  * '\\' 可能是指明跳行
-		  */
+		* '\\' 可能是指明跳行
+		*/
 		/* These could start an escaped newline, or '?' a trigraph.  Let
 		skip_escaped_newlines do all the work.  */
 	{
 				 unsigned int line = pfile->line;
 
-				/* 处理转义 */
+				 /* 处理转义 */
 				 c = skip_escaped_newlines(pfile);
 				 if (line != pfile->line)
 				 {
@@ -1250,8 +1250,8 @@ trigraph:
 
 	case '%':
 		/* 这里是解析'%' 开头的符号，
-		  * 这里有些二目式也有四目式，具体可以参看维基百科Digraphs and trigraphs
-		  */
+		* 这里有些二目式也有四目式，具体可以参看维基百科Digraphs and trigraphs
+		*/
 		c = get_effective_char(pfile);
 		if (c == '=')
 			result->type = CPP_MOD_EQ;
@@ -1393,14 +1393,14 @@ trigraph:
 		}
 		break;
 
-	/* 接下来匹配各种符号 */
+		/* 接下来匹配各种符号 */
 	case '*': IF_NEXT_IS('=', CPP_MULT_EQ, CPP_MULT); break;
 	case '=': IF_NEXT_IS('=', CPP_EQ_EQ, CPP_EQ); break;
 	case '!': IF_NEXT_IS('=', CPP_NOT_EQ, CPP_NOT); break;
 	case '^': IF_NEXT_IS('=', CPP_XOR_EQ, CPP_XOR); break;
 	case '#': IF_NEXT_IS('#', CPP_PASTE, CPP_HASH); break;
 
-	/* 下面是单个字符的符号 */
+		/* 下面是单个字符的符号 */
 	case '~': result->type = CPP_COMPL; break;
 	case ',': result->type = CPP_COMMA; break;
 	case '(': result->type = CPP_OPEN_PAREN; break;
@@ -1422,7 +1422,7 @@ trigraph:
 		/* Fall through...  */
 
 	random_char:
-	/* 未知数随机字符 */
+		/* 未知数随机字符 */
 	default:
 		result->type = CPP_OTHER;
 		result->val.c = c;
@@ -1456,6 +1456,12 @@ const cpp_token *token;
 already contain the enough space to hold the token's spelling.
 Returns a pointer to the character after the last character
 written.  */
+/* 将token转为字符串的拼写形式，
+* 返回值是字符串结束的下一个字符指针
+*
+*
+*
+*/
 unsigned char *
 cpp_spell_token(pfile, token, buffer)
 cpp_reader *pfile;		/* Would be nice to be rid of this...  */
@@ -1465,39 +1471,46 @@ unsigned char *buffer;
 	switch (TOKEN_SPELL(token))
 	{
 	case SPELL_OPERATOR:
+		/* 操作符 */
 	{
 						   const unsigned char *spelling;
 						   unsigned char c;
 
+						   /* 获取字符串 */
 						   if (token->flags & DIGRAPH)
 							   spelling
 							   = digraph_spellings[(int)token->type - (int)CPP_FIRST_DIGRAPH];
 						   else if (token->flags & NAMED_OP)
-							   goto spell_ident;
+							   goto spell_ident;  //C++里的命名的操作符
 						   else
 							   spelling = TOKEN_NAME(token);
 
+							/* 将字符串复制到缓冲区 */
 						   while ((c = *spelling++) != '\0')
 							   *buffer++ = c;
 	}
 		break;
 
 	case SPELL_CHAR:
+		/* 一个字符，直接复制 */
 		*buffer++ = token->val.c;
 		break;
 
 	spell_ident:
 	case SPELL_IDENT:
+		/* 标识符，C++的命名符号也是一种标识符 */
 		memcpy(buffer, NODE_NAME(token->val.node), NODE_LEN(token->val.node));
 		buffer += NODE_LEN(token->val.node);
 		break;
 
 	case SPELL_NUMBER:
+		/* 数值 */
 		memcpy(buffer, token->val.str.text, token->val.str.len);
 		buffer += token->val.str.len;
 		break;
 
 	case SPELL_STRING:
+		/* 字符串 */
 	{
 						 int left, right, tag;
 						 switch (token->type)
@@ -1520,6 +1533,7 @@ unsigned char *buffer;
 		break;
 
 	case SPELL_NONE:
+		/* 不能拼写出来的token */
 		cpp_ice(pfile, "unspellable token %s", TOKEN_NAME(token));
 		break;
 	}
@@ -1538,6 +1552,7 @@ const cpp_token *token;
 	unsigned int len = cpp_token_len(token);
 	unsigned char *start = _cpp_unaligned_alloc(pfile, len), *end;
 
+	/* 将token作为字符串保存 */
 	end = cpp_spell_token(pfile, token, start);
 	end[0] = '\0';
 
@@ -2118,8 +2133,8 @@ size_t len;
 	base = xmalloc(len + sizeof (_cpp_buff));
 
 	/* 申请到空间底部为记录着信息的结构体，
-	  * 下面初始化这个结构体
-	  */
+	* 下面初始化这个结构体
+	*/
 	result = (_cpp_buff *)(base + len);
 	result->base = base;
 	result->cur = base;
