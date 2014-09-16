@@ -224,6 +224,7 @@ cpp_reader *pfile;
 }
 
 /* Ensure there are no stray tokens at the end of a directive.  */
+/* 忽略多余的token */
 static void
 check_eol(pfile)
 cpp_reader *pfile;
@@ -678,23 +679,26 @@ cpp_reader *pfile;
 LAST is the last flag seen; 0 if this is the first flag. Return the
 flag if it is valid, 0 at the end of the directive. Otherwise
 complain.  */
+/* 读取# 44 "<stdio.h>" 1 这种指令的标识符的1位置的标志 */
 static unsigned int
 read_flag(pfile, last)
 cpp_reader *pfile;
 unsigned int last;
 {
+	/* 在指令中如果读到换行符返回的是EOF类型的token */
 	const cpp_token *token = _cpp_lex_token(pfile);
 
 	if (token->type == CPP_NUMBER && token->val.str.len == 1)
 	{
 		unsigned int flag = token->val.str.text[0] - '0';
-
+		/* 判断标志数值的合法性 */
 		if (flag > last && flag <= 4
 			&& (flag != 4 || last == 3)
 			&& (flag != 2 || last == 0))
 			return flag;
 	}
 
+	/* 将token以字符串的形式记录下来 */
 	if (token->type != CPP_EOF)
 		cpp_error(pfile, "invalid flag \"%s\" in line directive",
 		cpp_token_as_text(pfile, token));
@@ -853,27 +857,33 @@ cpp_reader *pfile;
 		new_file = (const char *)dequote_string(pfile, token->val.str.text,
 			token->val.str.len);
 		new_sysp = 0;
+		/* 读取文件标志，进入、推出等 */
 		flag = read_flag(pfile, 0);
 		if (flag == 1)
 		{
 			reason = LC_ENTER;
 			/* Fake an include for cpp_included ().  */
+			/* 确定一下文件是否在伸展树中 */
 			_cpp_fake_include(pfile, new_file);
+			/* 如果有的的话，读取下一个标志 */
 			flag = read_flag(pfile, flag);
 		}
 		else if (flag == 2)
 		{
 			reason = LC_LEAVE;
+			/* 读取文件标志，进入、推出等 */
 			flag = read_flag(pfile, flag);
 		}
 		if (flag == 3)
 		{
 			new_sysp = 1;
+			/* 读取文件标志，进入、推出等 */
 			flag = read_flag(pfile, flag);
 			if (flag == 4)
 				new_sysp = 2;
 		}
 
+		/* 跳过无用的token */
 		check_eol(pfile);
 	}
 	else if (token->type != CPP_EOF)

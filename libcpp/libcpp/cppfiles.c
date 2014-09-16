@@ -198,7 +198,7 @@ struct include_file *file;
 /* Lookup a filename, which is simplified after making a copy, and
 create an entry if none exists.  errno is nonzero iff a (reported)
 stat() error occurred during simplification.  */
-/* ²éÕÒ½Úµã£¬Èç²»´æÔÚÔò´´½¨¸Ã½ÚµE*/
+/* ²éÕÒ½Úµã£¬Èç²»´æÔÚÔò´´½¨¸Ã½Úµã*/
 static splay_tree_node
 find_or_create_entry(pfile, fname)
 cpp_reader *pfile;
@@ -208,11 +208,11 @@ const char *fname;
 	struct include_file *file;
 	char *name = xstrdup(fname);
 
-	/* ½«name×ª»»³É±E¼µÄÂ·¾¶ */
+	/* ½«name×ª»»³É¼ò»¯µÄÂ·¾¶ */
 	_cpp_simplify_pathname(name);
 	node = splay_tree_lookup(pfile->all_include_files, (splay_tree_key)name);
 
-	/* Èç¹ûÔÚÉE¹Ê÷ÀEÒµ½¸ÃÂ·¾¶£¬Ôò·µ»Ø£¬·ñÔò´´½¨Ò»¸ö½ÚµE*/
+	/* Èç¹ûÔÚÉìÕ¹Ê÷ÖĞµ½¸ÃÂ·¾¶£¬Ôò·µ»Ø£¬·ñÔò´´½¨Ò»¸ö½Úµã*/
 	if (node)
 		free(name);
 	else
@@ -229,6 +229,7 @@ const char *fname;
 }
 
 /* Enter a file name in the splay tree, for the sake of cpp_included.  */
+/* ÔÚÉìÕ¹Ê÷ÖĞ²éÕÒ»òĞÂ½¨½Úµã */
 void
 _cpp_fake_include(pfile, fname)
 cpp_reader *pfile;
