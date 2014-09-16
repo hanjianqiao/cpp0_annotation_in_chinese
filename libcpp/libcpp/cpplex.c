@@ -846,6 +846,7 @@ tokenrun *run;
 rest of the tokens on the line.  Has its line and col set to the
 same as the last lexed token, so that diagnostics appear in the
 right place.  */
+/* 分配一个新token，这个token和上一个token有相同的行列号。 */
 cpp_token *
 _cpp_temp_token(pfile)
 cpp_reader *pfile;

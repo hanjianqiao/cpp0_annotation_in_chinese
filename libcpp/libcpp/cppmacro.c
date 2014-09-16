@@ -371,7 +371,10 @@ macro_arg *arg;
 /* Try to paste two tokens.  On success, return non-zero.  In any
 case, PLHS is updated to point to the pasted token, which is
 guaranteed to not have the PASTE_LEFT flag set.  */
-/* 尝试粘贴两个token。 */
+/* 尝试粘贴两个token，即将两个token转换成字符串后连接起来，
+  * 会扫描进一个新的token，这个token是用来替换前一个token的。
+  * 即右替换左。
+  */
 static bool
 paste_tokens(pfile, plhs, rhs)
 cpp_reader *pfile;
@@ -403,20 +406,28 @@ const cpp_token **plhs, *rhs;
 		*end++ = ' ';	//破坏掉注释
 	/* 将右操作符转换成字符串和左操作符的字符串连起来 */
 	end = cpp_spell_token(pfile, rhs, end);
-	*end = '\0';
+	*end = '\0';    //添加结束符
 
+	/* 将完成的字符串保存到栈中，stage3 */
 	cpp_push_buffer(pfile, buf, end - buf, /* from_stage3 */ true, 1);
 
 	/* Tweak the column number the lexer will report.  */
+	/* 修改列号 */
 	pfile->buffer->col_adjust = pfile->cur_token[-1].col - 1;
 
 	/* We don't want a leading # to be interpreted as a directive.  */
+	/* 不想让开头的#被认为是指令的开始 */
 	pfile->buffer->saved_flags = 0;
 
 	/* Set pfile->cur_token as required by _cpp_lex_direct.  */
+	/* 获取一个和前一个token有相同位置信息的token，
+	  * 这样获取的下一个token就和前一个token在相同位置上了
+	  */
 	pfile->cur_token = _cpp_temp_token(pfile);
 	*plhs = _cpp_lex_direct(pfile);
+	/* 正常处理完应该是true */
 	valid = pfile->buffer->cur == pfile->buffer->rlimit;
+	/* 恢复栈 */
 	_cpp_pop_buffer(pfile);
 
 	return valid;
@@ -429,7 +440,11 @@ ones.  If a paste fails, we back up to the RHS of the failing ##
 operator before pushing the context containing the result of prior
 successful pastes, with the effect that the RHS appears in the
 output stream after the pasted LHS normally.  */
-/*  */
+/* 处理任意长度带有LHS操作符的##操作符序列。
+  *
+  *
+  *
+  */
 static void
 paste_all_tokens(pfile, lhs)
 cpp_reader *pfile;
@@ -458,11 +473,14 @@ const cpp_token *lhs;
 		if (rhs->type == CPP_PADDING)
 			abort();
 
+		/* 应该是宏的替换 */
 		if (!paste_tokens(pfile, &lhs, rhs))
 		{
+			//替换失败
 			_cpp_backup_tokens(pfile, 1);
 
 			/* Mandatory warning for all apart from assembler.  */
+			/* 除汇编模式以外，强制输出警告 */
 			if (CPP_OPTION(pfile, lang) != CLK_ASM)
 				cpp_warning(pfile,
 				"pasting \"%s\" and \"%s\" does not give a valid preprocessing token",
@@ -470,9 +488,10 @@ const cpp_token *lhs;
 				cpp_token_as_text(pfile, rhs));
 			break;
 		}
-	} while (rhs->flags & PASTE_LEFT);
+	} while (rhs->flags & PASTE_LEFT);  //继续替换为替换部分
 
 	/* Put the resulting token in its own context.  */
+	/* 将token保存到它自己的context里面 */
 	push_token_context(pfile, NULL, lhs, 1);
 }
 
@@ -906,6 +925,7 @@ const cpp_token *source;
 
 /* Get a new uninitialized context.  Create a new one if we cannot
 re-use an old one.  */
+/* 获取一个新的context */
 static cpp_context *
 next_context(pfile)
 cpp_reader *pfile;
@@ -913,6 +933,7 @@ cpp_reader *pfile;
 	cpp_context *result = pfile->context->next;
 
 	if (result == 0)
+		/* 无法找到可用的，新申请一个 */
 	{
 		result = xnew(cpp_context);
 		result->prev = pfile->context;
@@ -943,6 +964,7 @@ unsigned int count;
 }
 
 /* Push a list of tokens.  */
+/* 将first到first+count的token保存到下一个context里，pfile的context也变成这个context */
 static void
 push_token_context(pfile, macro, first, count)
 cpp_reader *pfile;
