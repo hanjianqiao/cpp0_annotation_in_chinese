@@ -1083,6 +1083,7 @@ cpp_reader *pfile;
 
 			/* 如果是##的符号 */
 			if (result->flags & PASTE_LEFT)
+				/* 这个不明白到底是做什么的 */
 			{
 				paste_all_tokens(pfile, result);
 				if (pfile->state.in_directive)
