@@ -868,6 +868,7 @@ cpp_reader *pfile;
 /* Lex a token into RESULT (external interface).  Takes care of issues
 like directive handling, token lookahead, multiple include
 optimization and skipping.  */
+/* 获取一个token，包含处理指令、引用等多种情况 */
 const cpp_token *
 _cpp_lex_token(pfile)
 cpp_reader *pfile;

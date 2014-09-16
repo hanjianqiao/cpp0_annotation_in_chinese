@@ -279,6 +279,7 @@ int skip_line;
 
 /* Output diagnostics for a directive DIR.  INDENTED is non-zero if
 the '#' was indented.  */
+/* 输出诊断信息 */
 static void
 directive_diagnostics(pfile, dir, indented)
 cpp_reader *pfile;
@@ -348,6 +349,7 @@ int indented;
 	/* 汇编模式下不识别后面跟着数字的# */
 	else if (dname->type == CPP_NUMBER && CPP_OPTION(pfile, lang) != CLK_ASM)
 	{
+		/* dir指向一个处理#44 "<stdio.h> 2" 这样的宏指令的函数 */
 		dir = &linemarker_dir;
 		if (CPP_PEDANTIC(pfile) && !CPP_OPTION(pfile, preprocessed)
 			&& !pfile->state.skipping)
@@ -358,6 +360,7 @@ int indented;
 	{
 		/* If we have a directive that is not an opening conditional,
 		invalidate any control macro.  */
+		/* 如果指令不是在开放条件里面，就关闭宏控制 */
 		if (!(dir->flags & IF_COND))
 			pfile->mi_valid = false;
 
@@ -370,6 +373,7 @@ int indented;
 		compiled with -save-temps, we recognize directives in
 		-fpreprocessed mode only if the # is in column 1.  cppmacro.c
 		puts a space in front of any '#' at the start of a macro.  */
+		/* 在-fpreprocessed模式下，仅当#在第一列的时候才识别指令 */
 		if (CPP_OPTION(pfile, preprocessed)
 			&& (indented || !(dir->flags & IN_I)))
 		{
@@ -382,6 +386,7 @@ int indented;
 			directives are ignored.  Before doing that, whether
 			skipping or not, we should lex angle-bracketed headers
 			correctly, and maybe output some diagnostics.  */
+			/* 条件组失败，处理 */
 			pfile->state.angled_headers = dir->flags & INCL;
 			if (!CPP_OPTION(pfile, preprocessed))
 				directive_diagnostics(pfile, dir, indented);
@@ -397,6 +402,7 @@ int indented;
 		source: we don't know where the comments are, and # may
 		introduce assembler pseudo-ops.  Don't complain about invalid
 		directives in skipped conditional groups (6.10 p4).  */
+		/* 汇编中的指令现在识别不了，但不代表有问题 */
 		if (CPP_OPTION(pfile, lang) == CLK_ASM)
 			skip = 0;
 		else if (!pfile->state.skipping)
@@ -410,6 +416,7 @@ int indented;
 		(*pfile->directive->handler) (pfile);
 	}
 	else if (skip == 0)
+		/* skip为零表示这个token不是在指令里 */
 		_cpp_backup_tokens(pfile, 1);
 
 	/* 汇编中的立即数的话，不进行处理，直接跳转到这里 */
