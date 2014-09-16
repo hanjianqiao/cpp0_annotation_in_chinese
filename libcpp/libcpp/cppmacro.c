@@ -1019,6 +1019,7 @@ see CPP_EOF only at EOF.  Internal callers also see it when meeting
 a directive inside a macro call, when at the end of a directive and
 state.in_directive is still 1, and at the end of argument
 pre-expansion.  */
+/* 获取一个token。这里只有在文件结束才会获得CPP_EOF */
 const cpp_token *
 cpp_get_token(pfile)
 cpp_reader *pfile;
@@ -1031,15 +1032,19 @@ cpp_reader *pfile;
 		cpp_context *context = pfile->context;
 
 		/* Context->prev == 0 <=> base context.  */
+		/* 这是第一个context的话 */
 		if (!context->prev)  //读取一个token
 			result = _cpp_lex_token(pfile);
+		/* context里有可用token，就从context里获取 */
 		else if (context->first.token != context->last.token)
 		{
+			/* 判断哪种token */
 			if (context->direct_p)
 				result = context->first.token++;
 			else
 				result = *context->first.ptoken++;
 
+			/* 如果是##的符号 */
 			if (result->flags & PASTE_LEFT)
 			{
 				paste_all_tokens(pfile, result);
@@ -1048,8 +1053,10 @@ cpp_reader *pfile;
 				return padding_token(pfile, result);
 			}
 		}
+		/* 要使用前一个context的token */
 		else
 		{
+			/* 从context栈中取出上一个context */
 			_cpp_pop_context(pfile);
 			if (pfile->state.in_directive)
 				continue;
