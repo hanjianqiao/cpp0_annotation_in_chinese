@@ -1553,7 +1553,7 @@ const cpp_token *token;
 	unsigned int len = cpp_token_len(token);
 	unsigned char *start = _cpp_unaligned_alloc(pfile, len), *end;
 
-	/* 将token作为字符串保存 */
+	/* 将token转换为字符串 */
 	end = cpp_spell_token(pfile, token, start);
 	end[0] = '\0';
 

@@ -371,6 +371,7 @@ macro_arg *arg;
 /* Try to paste two tokens.  On success, return non-zero.  In any
 case, PLHS is updated to point to the pasted token, which is
 guaranteed to not have the PASTE_LEFT flag set.  */
+/* 尝试粘贴两个token。 */
 static bool
 paste_tokens(pfile, plhs, rhs)
 cpp_reader *pfile;
@@ -382,17 +383,25 @@ const cpp_token **plhs, *rhs;
 	bool valid;
 
 	lhs = *plhs;
-	len = cpp_token_len(lhs) + cpp_token_len(rhs) + 1;
-	buf = (unsigned char *)alloca(len);
-	end = cpp_spell_token(pfile, lhs, buf);
+	len = cpp_token_len(lhs) + cpp_token_len(rhs) + 1;  //两个token长度的和加1
+	buf = (unsigned char *)alloca(len);                 //申请长度为len的空间
+	end = cpp_spell_token(pfile, lhs, buf);             //将左token转换为字符表示
 
 	/* Avoid comment headers, since they are still processed in stage 3.
 	It is simpler to insert a space here, rather than modifying the
 	lexer to ignore comments in some circumstances.  Simply returning
 	false doesn't work, since we want to clear the PASTE_LEFT flag.  */
+	/* 避免注释掉头文件，因为他们在第3阶段仍在处理中。 
+	在这里插入一个空格比修改词法分析器来忽略在
+	某些情况下的注释要简单。简单地返回 假的也不行，
+	因为我们要清除PASTE_LEFT标志。 */
+	/* 如果左操作符的类型是除号并且右操作符的类型是乘号或者除号 
+	  * 即如果左右token构成//或者/*
+	  */
 	if (lhs->type == CPP_DIV
 		&& (rhs->type == CPP_MULT || rhs->type == CPP_DIV))
-		*end++ = ' ';
+		*end++ = ' ';	//破坏掉注释
+	/* 将右操作符转换成字符串和左操作符的字符串连起来 */
 	end = cpp_spell_token(pfile, rhs, end);
 	*end = '\0';
 
@@ -420,6 +429,7 @@ ones.  If a paste fails, we back up to the RHS of the failing ##
 operator before pushing the context containing the result of prior
 successful pastes, with the effect that the RHS appears in the
 output stream after the pasted LHS normally.  */
+/*  */
 static void
 paste_all_tokens(pfile, lhs)
 cpp_reader *pfile;
@@ -435,6 +445,11 @@ const cpp_token *lhs;
 		object-like macro, or a function-like macro with arguments
 		inserted.  In either case, the constraints to #define
 		guarantee we have at least one more token.  */
+		/* 直接从当前上下文获取token，我们可以做 
+			到这一点，因为我们在object-like宏的替换列表 
+			或插入参数的函数宏 
+			，在这两种情况下，约束#define 
+			保证至少有一个以上的令牌。 */
 		if (context->direct_p)
 			rhs = context->first.token++;
 		else
