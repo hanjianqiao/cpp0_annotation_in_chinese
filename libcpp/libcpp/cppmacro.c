@@ -500,6 +500,7 @@ invocation.  Assumes the opening parenthesis has been processed.
 If there is an error, emits an appropriate diagnostic and returns
 NULL.  Each argument is terminated by a CPP_EOF token, for the
 future benefit of expand_arg().  */
+/* 读取宏的参数 */
 static _cpp_buff *
 collect_args(pfile, node)
 cpp_reader *pfile;
@@ -512,15 +513,19 @@ const cpp_hashnode *node;
 	unsigned int argc;
 	bool error = false;
 
+	/* 获取宏指针 */
 	macro = node->value.macro;
+	/* 函数型宏的参数个数 */
 	if (macro->paramc)
 		argc = macro->paramc;
 	else
 		argc = 1;
+	/* 为每个宏的参数分配一定的空间 */
 	buff = _cpp_get_buff(pfile, argc * (50 * sizeof (cpp_token *)
 		+sizeof (macro_arg)));
 	base_buff = buff;
 	args = (macro_arg *)buff->base;
+	/* 清空args存储空间 */
 	memset(args, 0, argc * sizeof (macro_arg));
 	buff->cur = (unsigned char *)&args[argc];
 	arg = args, argc = 0;
@@ -528,6 +533,9 @@ const cpp_hashnode *node;
 	/* Collect the tokens making up each argument.  We don't yet know
 	how many arguments have been supplied, whether too many or too
 	few.  Hence the slightly bizarre usage of "argc" and "arg".  */
+	/* 搜集组成参数的token。现在还不能确定有多少个参数。
+	  * 
+	  */
 	do
 	{
 		unsigned int paren_depth = 0;
@@ -539,25 +547,31 @@ const cpp_hashnode *node;
 		for (;;)
 		{
 			/* Require space for 2 new tokens (including a CPP_EOF).  */
+			/* 要留有两个token的空间给新token用 */
 			if ((unsigned char *)&arg->first[ntokens + 2] > buff->limit)
 			{
+				/* 添加新的缓冲区 */
 				buff = _cpp_append_extend_buff(pfile, buff,
 					1000 * sizeof (cpp_token *));
 				arg->first = (const cpp_token **)buff->cur;
 			}
 
+			/* 获取一个token */
 			token = cpp_get_token(pfile);
 
 			if (token->type == CPP_PADDING)
 			{
 				/* Drop leading padding.  */
+				/* 丢弃开头的padding token */
 				if (ntokens == 0)
 					continue;
 			}
 			else if (token->type == CPP_OPEN_PAREN)
+				/* 记录左括号和右括号的差值 */
 				paren_depth++;
 			else if (token->type == CPP_CLOSE_PAREN)
 			{
+				/* 右括号比左括号多，错误 */
 				if (paren_depth-- == 0)
 					break;
 			}
@@ -565,26 +579,32 @@ const cpp_hashnode *node;
 			{
 				/* A comma does not terminate an argument within
 				parentheses or as part of a variable argument.  */
+				/* 正确地搜集到所有的参数 */
 				if (paren_depth == 0
 					&& !(macro->variadic && argc == macro->paramc))
 					break;
 			}
+			/* 换行了，或者开头第一个token是# */
 			else if (token->type == CPP_EOF
 				|| (token->type == CPP_HASH && token->flags & BOL))
 				break;
 
+			/* 记录下token */
 			arg->first[ntokens++] = token;
 		}
 
 		/* Drop trailing padding.  */
+		/* 除去链表尾部的padding token */
 		while (ntokens > 0 && arg->first[ntokens - 1]->type == CPP_PADDING)
 			ntokens--;
 
+		/* 记录有几个token */
 		arg->count = ntokens;
 		arg->first[ntokens] = &pfile->eof;
 
 		/* Terminate the argument.  Excess arguments loop back and
 		overwrite the final legitimate argument, before failing.  */
+		/* 继续处理宏参数 */
 		if (argc <= macro->paramc)
 		{
 			buff->cur = (unsigned char *)&arg->first[ntokens + 1];
@@ -595,6 +615,7 @@ const cpp_hashnode *node;
 		&& token->type != CPP_EOF
 		&& token->type != CPP_HASH);
 
+	/* 结束的token是CPP_EOF 或者CPP_HASH类型的话 */
 	if (token->type == CPP_EOF || token->type == CPP_HASH)
 	{
 		bool step_back = false;
@@ -605,12 +626,14 @@ const cpp_hashnode *node;
 
 		This implementation will report a hard error, terminate the
 		macro invocation, and proceed to process the directive.  */
+		/* 如果结束的token类型是CPP_HASH */
 		if (token->type == CPP_HASH)
 		{
 			cpp_error(pfile,
 				"directives may not be used inside a macro argument");
 			step_back = true;
 		}
+		/* 如果当前context还有前一个context或者现在的状态是在指令里 */
 		else
 			step_back = (pfile->context->prev || pfile->state.in_directive);
 
@@ -618,12 +641,15 @@ const cpp_hashnode *node;
 		pre-expansion of a macro argument.  Step back is not
 		unconditional, since we don't want to return a CPP_EOF to our
 		callers at the end of an -include-d file.  */
+		/* 保存一个token */
 		if (step_back)
 			_cpp_backup_tokens(pfile, 1);
+		
 		cpp_error(pfile, "unterminated argument list invoking macro \"%s\"",
 			NODE_NAME(node));
 		error = true;
 	}
+	/* 如果结束的token是CPP_CLOSE_PAREN 并且还没有处理所有的参数 */
 	else if (argc < macro->paramc)
 	{
 		/* As an extension, a rest argument is allowed to not appear in
@@ -634,6 +660,7 @@ const cpp_hashnode *node;
 		This is exactly the same as if there had been an empty rest
 		argument - debug("string", ).  */
 
+		/* 还差一个参数或者差多个参数 */
 		if (argc + 1 == macro->paramc && macro->variadic)
 		{
 			if (CPP_PEDANTIC(pfile) && !macro->syshdr)
@@ -647,6 +674,7 @@ const cpp_hashnode *node;
 			error = true;
 		}
 	}
+	/* 处理的数量多了 */
 	else if (argc > macro->paramc)
 	{
 		/* Empty argument to a macro taking no arguments is OK.  */
@@ -662,6 +690,7 @@ const cpp_hashnode *node;
 	if (!error)
 		return base_buff;
 
+	/* 有错误释放空间，返回NULL */
 	_cpp_release_buff(pfile, base_buff);
 	return NULL;
 }
@@ -671,7 +700,10 @@ way that, if none is found, we don't lose the information in any
 intervening padding tokens.  If we find the parenthesis, collect
 the arguments and return the buffer containing them.  */
 /*
-  *
+  *寻找一个节点的宏开始的左括号，在这样的 
+话，如果没有找到，我们不会丢失以任何方式 
+中间填充的标记信息。如果我们找到了括号，收集 
+参数并返回包含它们的缓冲区。
   *
   *
   *
@@ -699,7 +731,9 @@ cpp_hashnode *node;
 	/* 如果token是左括号 */
 	if (token->type == CPP_OPEN_PAREN)
 	{
+		/* 进入第二阶段 */
 		pfile->state.parsing_args = 2;
+		/* 返回获取的参数 */
 		return collect_args(pfile, node);
 	}
 
@@ -761,6 +795,7 @@ cpp_hashnode *node;
 			pfile->state.prevent_expansion++;
 			pfile->keep_tokens++;
 			pfile->state.parsing_args = 1;
+			/* 寻找以左括号开始的宏的参数列表 */
 			buff = funlike_invocation_p(pfile, node);
 			pfile->state.parsing_args = 0;
 			pfile->keep_tokens--;
@@ -768,6 +803,7 @@ cpp_hashnode *node;
 
 			if (buff == NULL)
 			{
+				/* 没有获取到宏参数列表 */
 				if (CPP_WTRADITIONAL(pfile) && !node->value.macro->syshdr)
 					cpp_warning(pfile,
 					"function-like macro \"%s\" must be used with arguments in traditional C",
@@ -777,7 +813,9 @@ cpp_hashnode *node;
 			}
 
 			if (node->value.macro->paramc > 0)
+				/* 如果宏参数需要被替换 */
 				replace_args(pfile, node, (macro_arg *)buff->base);
+			/* 释放buff 空间*/
 			_cpp_release_buff(pfile, buff);
 		}
 
@@ -785,12 +823,14 @@ cpp_hashnode *node;
 		node->flags |= NODE_DISABLED;
 
 		if (macro->paramc == 0)
+			/* 将token保存 */
 			push_token_context(pfile, node, macro->expansion, macro->count);
 
 		return 1;
 	}
 
 	/* Handle built-in macros and the _Pragma operator.  */
+	/* 处理内嵌宏 */
 	return builtin_macro(pfile, node);
 }
 

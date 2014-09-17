@@ -2217,6 +2217,7 @@ size_t min_size;
 remaining bytes of BUFF, and at least MIN_EXTRA more bytes.  Copies
 the excess bytes to the new buffer.  Chains the new buffer after
 BUFF, and returns the new buffer.  */
+/* 创建一个新的缓冲来保存 */
 _cpp_buff *
 _cpp_append_extend_buff(pfile, buff, min_extra)
 cpp_reader *pfile;
