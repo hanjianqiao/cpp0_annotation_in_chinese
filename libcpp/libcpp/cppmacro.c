@@ -88,12 +88,14 @@ static void check_trad_stringification PARAMS((cpp_reader *,
 
 /* Allocates and returns a CPP_STRING token, containing TEXT of length
 LEN, after null-terminating it.  TEXT must be in permanent storage.  */
+/* 获取一个string类型的token */
 static const cpp_token *
 new_string_token(pfile, text, len)
 cpp_reader *pfile;
 unsigned char *text;
 unsigned int len;
 {
+	/* 和前一个token有相同的行列号 */
 	cpp_token *token = _cpp_temp_token(pfile);
 
 	text[len] = '\0';
@@ -289,6 +291,7 @@ unsigned int len;
 
 /* Convert a token sequence ARG to a single string token according to
 the rules of the ISO C #-operator.  */
+/* 使用标准C的#-操作符规则将一系列的参数转化为一个字符串 */
 static const cpp_token *
 stringify_arg(pfile, arg)
 cpp_reader *pfile;
@@ -304,6 +307,7 @@ macro_arg *arg;
 	{
 		const cpp_token *token = arg->first[i];
 
+		/* 如果是填充token */
 		if (token->type == CPP_PADDING)
 		{
 			if (source == NULL)
@@ -311,16 +315,19 @@ macro_arg *arg;
 			continue;
 		}
 
+		/* 如果是字符串类型的token，将标志置为真 */
 		escape_it = (token->type == CPP_STRING || token->type == CPP_WSTRING
 			|| token->type == CPP_CHAR || token->type == CPP_WCHAR);
 
 		/* Room for each char being written in octal, initial space and
 		final NUL.  */
+		/* 为将字符转换成用转义字符串表达的八进制数准备空间 */
 		len = cpp_token_len(token);
 		if (escape_it)
 			len *= 4;
 		len += 2;
 
+		/* 如果因为需要更多的空间使原来的缓冲不够用，则要增加缓冲 */
 		if ((size_t)(BUFF_LIMIT(pfile->u_buff) - dest) < len)
 		{
 			size_t len_so_far = dest - BUFF_FRONT(pfile->u_buff);
@@ -329,16 +336,21 @@ macro_arg *arg;
 		}
 
 		/* Leading white space?  */
+		/* 前面有个空格? */
 		if (dest != BUFF_FRONT(pfile->u_buff))
 		{
 			if (source == NULL)
 				source = token;
+			/* 前面有个空格，添加空格 */
 			if (source->flags & PREV_WHITE)
 				*dest++ = ' ';
 		}
 		source = NULL;
 
 		if (escape_it)
+			/* 如果是字符型或字符串型的token ，
+			  * 将其转化成字符串(带双引号的字符串)
+			  */
 		{
 			_cpp_buff *buff = _cpp_get_buff(pfile, len);
 			unsigned char *buf = BUFF_FRONT(buff);
@@ -347,8 +359,10 @@ macro_arg *arg;
 			_cpp_release_buff(pfile, buff);
 		}
 		else
+			/* 否则直接转换，不做双引号处理 */
 			dest = cpp_spell_token(pfile, token, dest);
 
+		/* 其他 */
 		if (token->type == CPP_OTHER && token->val.c == '\\')
 			backslash_count++;
 		else
@@ -356,6 +370,7 @@ macro_arg *arg;
 	}
 
 	/* Ignore the final \ of invalid string literals.  */
+	/* 如果最后连续的反斜杠的个数是奇数 */
 	if (backslash_count & 1)
 	{
 		cpp_warning(pfile, "invalid string literal, ignoring final '\\'");
@@ -365,6 +380,8 @@ macro_arg *arg;
 	/* Commit the memory, including NUL, and return the token.  */
 	len = dest - BUFF_FRONT(pfile->u_buff);
 	BUFF_FRONT(pfile->u_buff) = dest + 1;
+
+	/* 返回字符串型token */
 	return new_string_token(pfile, dest - len, len);
 }
 
@@ -838,6 +855,7 @@ cpp_hashnode *node;
 actual ARGS, and place the result in a newly pushed token context.
 Expand each argument before replacing, unless it is operated upon
 by the # or ## operators.  */
+/* 替换宏参数为实际参数 */
 static void
 replace_args(pfile, node, args)
 cpp_reader *pfile;
@@ -855,22 +873,29 @@ macro_arg *args;
 	tokens in the final expansion as we go.  The ordering of the if
 	statements below is subtle; we must handle stringification before
 	pasting.  */
+	/* 计算要处理的token数量 */
 	macro = node->value.macro;
 	total = macro->count;
 	limit = macro->expansion + macro->count;
 
+	/* 对每个宏变量进行检查，如果变量是宏的话进行相应处理 */
 	for (src = macro->expansion; src < limit; src++)
 	if (src->type == CPP_MACRO_ARG)
 	{
 		/* Leading and trailing padding tokens.  */
+		/* 加上开头和结尾的两个token */
 		total += 2;
 
 		/* We have an argument.  If it is not being stringified or
 		pasted it is macro-replaced before insertion.  */
+		/* 如果当前的token没有字符串化也没有进行粘贴扩展，
+		  * 就需要对其做宏展开
+		  */
 		arg = &args[src->val.arg_no - 1];
 
 		if (src->flags & STRINGIFY_ARG)
 		{
+			/* 如果没有被字符串化，则将其字符串化 */
 			if (!arg->stringified)
 				arg->stringified = stringify_arg(pfile, arg);
 		}
@@ -879,6 +904,7 @@ macro_arg *args;
 			total += arg->count - 1;
 		else
 		{
+			/* 如果宏未展开，将其展开 */
 			if (!arg->expanded)
 				expand_arg(pfile, arg);
 			total += arg->expanded_count - 1;
