@@ -670,6 +670,14 @@ const cpp_hashnode *node;
 way that, if none is found, we don't lose the information in any
 intervening padding tokens.  If we find the parenthesis, collect
 the arguments and return the buffer containing them.  */
+/*
+  *
+  *
+  *
+  *
+  *
+  *
+  */
 static _cpp_buff *
 funlike_invocation_p(pfile, node)
 cpp_reader *pfile;
@@ -679,6 +687,7 @@ cpp_hashnode *node;
 
 	for (;;)
 	{
+		/* 遇到不是CPP_PADDING类型的token就中断循环 */
 		token = cpp_get_token(pfile);
 		if (token->type != CPP_PADDING)
 			break;
@@ -687,20 +696,25 @@ cpp_hashnode *node;
 			padding = token;
 	}
 
+	/* 如果token是左括号 */
 	if (token->type == CPP_OPEN_PAREN)
 	{
 		pfile->state.parsing_args = 2;
 		return collect_args(pfile, node);
 	}
 
+	/* 是一般类型的token */
 	/* CPP_EOF can be the end of macro arguments, or the end of the
 	file.  We mustn't back up over the latter.  Ugh.  */
+	/* 保存token，但是在文件的结尾不应该保存。 */
 	if (token->type != CPP_EOF || token == &pfile->eof)
 	{
 		/* Back up.  We may have skipped padding, in which case backing
 		up more than one token when expanding macros is in general
 		too difficult.  We re-insert it in its own context.  */
+		/* 保存一个token */
 		_cpp_backup_tokens(pfile, 1);
+		/* 如果跳过了padding token，将其保存下来 */
 		if (padding)
 			push_token_context(pfile, NULL, padding, 1);
 	}
@@ -712,22 +726,35 @@ cpp_hashnode *node;
 stack.  If we can successfully expand the macro, we push a context
 containing its yet-to-be-rescanned replacement list and return one.
 Otherwise, we don't push a context and return zero.  */
+/*
+  * 如果成功展开宏，则将其可替换列表压入上下文堆栈，返回1
+  * 失败的话返回零。
+  *
+  *
+  *
+  *
+  *
+  */
 static int
 enter_macro_context(pfile, node)
 cpp_reader *pfile;
 cpp_hashnode *node;
 {
 	/* The presence of a macro invalidates a file's controlling macro.  */
+	/* 出现宏，文件的控制宏就失效了 */
 	pfile->mi_valid = false;
 
 	pfile->state.angled_headers = false;
 
 	/* Handle standard macros.  */
 	if (!(node->flags & NODE_BUILTIN))
+		/* 不是内嵌的宏 */
 	{
+		/* 获取宏指针 */
 		cpp_macro *macro = node->value.macro;
 
 		if (macro->fun_like)
+			/* 如果是函数类似宏 */
 		{
 			_cpp_buff *buff;
 
@@ -910,11 +937,13 @@ macro_arg *args;
 }
 
 /* Return a special padding token, with padding inherited from SOURCE.  */
+/* 返回一个填充token，从source继承信息 */
 static const cpp_token *
 padding_token(pfile, source)
 cpp_reader *pfile;
 const cpp_token *source;
 {
+	/* 获取一个和当前token有相同行列号的token */
 	cpp_token *result = _cpp_temp_token(pfile);
 
 	result->type = CPP_PADDING;
@@ -1101,25 +1130,32 @@ cpp_reader *pfile;
 			return &pfile->avoid_paste;
 		}
 
+		/* lex 得到新的token是标识符名，OK返回*/
 		if (result->type != CPP_NAME)
 			break;
 
+		/* 记录token的值 */
 		node = result->val.node;
 
+		/* 不是宏或者不需要展开，OK返回 */
 		if (node->type != NT_MACRO || (result->flags & NO_EXPAND))
 			break;
 
+		/* 宏使能的话 */
 		if (!(node->flags & NODE_DISABLED))
 		{
 			if (!pfile->state.prevent_expansion
 				&& enter_macro_context(pfile, node))
+				/* 没有设置组织展开的标志 */
 			{
 				if (pfile->state.in_directive)
 					continue;
+				/* 返回一个继承相似位置信息的token*/
 				return padding_token(pfile, result);
 			}
 		}
 		else
+			/* 宏未使能 */
 		{
 			/* Flag this token as always unexpandable.  FIXME: move this
 			to collect_args()?.  */
