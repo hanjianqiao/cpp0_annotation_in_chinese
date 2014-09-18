@@ -935,20 +935,33 @@ macro_arg *args;
 
 		/* 如果是宏类型的token */
 		paste_flag = 0;
+		/* 取得参数指针 */
 		arg = &args[src->val.arg_no - 1];
 		if (src->flags & STRINGIFY_ARG)
+			/* 如果是被字符串化过的token，获取其字符串化后的指针 */
+		{
 			count = 1, from = &arg->stringified;
+		}
 		else if (src->flags & PASTE_LEFT)
-			count = arg->count, from = arg->first;
-		else if (src != macro->expansion && (src[-1].flags & PASTE_LEFT))
+			/* 如果是贴左型的token，获取指针 */
 		{
 			count = arg->count, from = arg->first;
+		}
+		else if (src != macro->expansion && (src[-1].flags & PASTE_LEFT))
+			/* 如果src不是列表的第一个，并且src前一个token是贴左类型 */
+		{
+			count = arg->count, from = arg->first;
+			/* 如果这不是第一个token */
 			if (dest != first)
 			{
 				/* GCC has special semantics for , ## b where b is a
 				varargs parameter: the comma disappears if b was
 				given no actual arguments (not merely if b is an
 				empty argument); otherwise the paste flag is removed.  */
+				/* GCC 对", ## b" 有特殊的语义如果b是一个可变参数，
+				  * 即：如果b没有被赋予实际参数（不仅当b是空参数），
+				  * 否则，paste的表示将被移除。
+				  */
 				if (dest[-1]->type == CPP_COMMA
 					&& macro->variadic
 					&& src->val.arg_no == macro->paramc)
@@ -959,36 +972,44 @@ macro_arg *args;
 						paste_flag = dest - 1;
 				}
 				/* Remove the paste flag if the RHS is a placemarker.  */
+				/* 如果右操作符是一个位置标记，则将paste标志移除 */
 				else if (count == 0)
 					paste_flag = dest - 1;
 			}
 		}
 		else
+			/* 其他情况，宏的扩展。 */
 			count = arg->expanded_count, from = arg->expanded;
 
 		/* Padding on the left of an argument (unless RHS of ##).  */
+		/* 在参数的左边加上填充token，除非是##的右操作符 */
 		if (!pfile->state.in_directive
 			&& src != macro->expansion && !(src[-1].flags & PASTE_LEFT))
 			*dest++ = padding_token(pfile, src);
 
 		if (count)
+			/* 有参数需要复制 */
 		{
 			memcpy(dest, from, count * sizeof (cpp_token *));
 			dest += count;
 
 			/* With a non-empty argument on the LHS of ##, the last
 			token should be flagged PASTE_LEFT.  */
+			/* ## 的左操作参数是非空的，前一个token就应该是被标记为PASTED_LEFT */
 			if (src->flags & PASTE_LEFT)
 				paste_flag = dest - 1;
 		}
 
 		/* Avoid paste on RHS (even case count == 0).  */
+		/* 避免粘贴右操作参数即使count为零 */
 		if (!pfile->state.in_directive && !(src->flags & PASTE_LEFT))
 			*dest++ = &pfile->avoid_paste;
 
 		/* Add a new paste flag, or remove an unwanted one.  */
+		/* 增加一个新的标志或者移除没用的标志 */
 		if (paste_flag)
 		{
+			/* 获取一个影子token */
 			cpp_token *token = _cpp_temp_token(pfile);
 			token->type = (*paste_flag)->type;
 			token->val.str = (*paste_flag)->val.str;
@@ -1001,10 +1022,12 @@ macro_arg *args;
 	}
 
 	/* Free the expanded arguments.  */
+	/* 释放已被扩展的参数 */
 	for (i = 0; i < macro->paramc; i++)
 	if (args[i].expanded)
 		free(args[i].expanded);
 
+	/* 将扩展好的token链表压入栈 */
 	push_ptoken_context(pfile, node, buff, first, dest - first);
 }
 
