@@ -913,6 +913,10 @@ macro_arg *args;
 
 	/* Now allocate space for the expansion, copy the tokens and replace
 	the arguments.  */
+	/* 到此为止已经将token的形式转换为容易处理的形式了，
+	  * 现在分配足够的空间，用token替换掉参数
+	  *
+	  */
 	buff = _cpp_get_buff(pfile, total * sizeof (cpp_token *));
 	first = (const cpp_token **)buff->base;
 	dest = first;
@@ -923,11 +927,13 @@ macro_arg *args;
 		const cpp_token **from, **paste_flag;
 
 		if (src->type != CPP_MACRO_ARG)
+			/* 不是宏类型的token可以直接复制 */
 		{
 			*dest++ = src;
 			continue;
 		}
 
+		/* 如果是宏类型的token */
 		paste_flag = 0;
 		arg = &args[src->val.arg_no - 1];
 		if (src->flags & STRINGIFY_ARG)
@@ -1041,6 +1047,7 @@ cpp_reader *pfile;
 }
 
 /* Push a list of pointers to tokens.  */
+/* 将token链表压入栈 */
 static void
 push_ptoken_context(pfile, macro, buff, first, count)
 cpp_reader *pfile;
@@ -1049,6 +1056,7 @@ _cpp_buff *buff;
 const cpp_token **first;
 unsigned int count;
 {
+	/* 获取一个新的context */
 	cpp_context *context = next_context(pfile);
 
 	context->direct_p = false;
@@ -1067,6 +1075,7 @@ cpp_hashnode *macro;
 const cpp_token *first;
 unsigned int count;
 {
+	/* 获取一个新的context */
 	cpp_context *context = next_context(pfile);
 
 	context->direct_p = true;
@@ -1082,6 +1091,13 @@ argument's tokens, and then expanding that into a temporary buffer
 as if it were a normal part of the token stream.  collect_args()
 has terminated the argument's tokens with a CPP_EOF so that we know
 when we have fully expanded the argument.  */
+
+/*在替换函数型宏的的参数之前展开一个参数arg 。
+通过保存上下文的参数的token，然后就好像它是记号流
+的正常组成部分一样将其扩展到临时缓冲。
+collect_args()已通过CPP_EOF终止参数的token让我们知道 
+我们什么时候完全展开了参数。
+*/
 static void
 expand_arg(pfile, arg)
 cpp_reader *pfile;
@@ -1097,11 +1113,13 @@ macro_arg *arg;
 	arg->expanded = (const cpp_token **)
 		xmalloc(capacity * sizeof (cpp_token *));
 
+	/* 将token保存到context中 */
 	push_ptoken_context(pfile, NULL, NULL, arg->first, arg->count + 1);
 	for (;;)
 	{
 		const cpp_token *token;
 
+		/* 如果空间不足，重新分配足够的空间 */
 		if (arg->expanded_count + 1 >= capacity)
 		{
 			capacity *= 2;
@@ -1109,14 +1127,17 @@ macro_arg *arg;
 				xrealloc(arg->expanded, capacity * sizeof (cpp_token *));
 		}
 
+		/* 从保存的token中获取一个token */
 		token = cpp_get_token(pfile);
 
 		if (token->type == CPP_EOF)
 			break;
 
+		/* 记录 */
 		arg->expanded[arg->expanded_count++] = token;
 	}
 
+	/* 还原context栈 */
 	_cpp_pop_context(pfile);
 }
 
