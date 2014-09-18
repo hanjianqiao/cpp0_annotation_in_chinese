@@ -107,6 +107,7 @@ unsigned int len;
 }
 
 /* Allocates and returns a CPP_NUMBER token evaluating to NUMBER.  */
+/* »ñÈ¡Ò»¸önumberÀàÐÍµÄtoken */
 static const cpp_token *
 new_number_token(pfile, number)
 cpp_reader *pfile;
@@ -134,6 +135,11 @@ static const char * const monthnames[] =
 on the context stack.  Also handles _Pragma, for which no new token
 is created.  Returns 1 if it generates a new token context, 0 to
 return the token to the caller.  */
+
+/* ´¦ÀíÀàËÆ__FILE__µÄÄÚÇ¶ºê£¬²¢½«½á¹ûÑ¹ÈëcontextÕ»¡£
+  * Ò²´¦Àí_Pragma£¬µ«ÊÇ²»»áÎªÆä´´½¨ÐÂµÄtoken¡£
+  * Èç¹û²úÉúÁËÐÂµÄcontextÔò·µ»Ø1£¬ÎÞÐ§µÄºê·µ»Ø0¡£
+  */
 static int
 builtin_macro(pfile, node)
 cpp_reader *pfile;
@@ -141,65 +147,85 @@ cpp_hashnode *node;
 {
 	const cpp_token *result;
 
+  /*ANSI C±ê×¼ÖÐÓÐ¼¸¸ö±ê×¼Ô¤¶¨Òåºê£¨Ò²ÊÇ³£ÓÃµÄ£©£º
+
+  __LINE__£ºÔÚÔ´´úÂëÖÐ²åÈëµ±Ç°Ô´´úÂëÐÐºÅ£»
+
+  __FILE__£ºÔÚÔ´ÎÄ¼þÖÐ²åÈëµ±Ç°Ô´ÎÄ¼þÃû£»
+
+  __DATE__£ºÔÚÔ´ÎÄ¼þÖÐ²åÈëµ±Ç°µÄ±àÒëÈÕÆÚ
+
+  __TIME__£ºÔÚÔ´ÎÄ¼þÖÐ²åÈëµ±Ç°±àÒëÊ±¼ä£»
+
+  __STDC__£ºµ±ÒªÇó³ÌÐòÑÏ¸ñ×ñÑ­ANSI C±ê×¼Ê±¸Ã±êÊ¶±»¸³ÖµÎª1£»
+*/
 	switch (node->value.builtin)
 	{
 	default:
 		cpp_ice(pfile, "invalid built-in macro \"%s\"", NODE_NAME(node));
 		return 0;
 
-	case BT_FILE:
-	case BT_BASE_FILE:
+	case BT_FILE:/* `__FILE__' */
+	case BT_BASE_FILE:/* `__BASE_FILE__' */
 	{
-						 unsigned int len;
-						 const char *name;
-						 U_CHAR *buf;
-						 const struct line_map *map = pfile->map;
+		unsigned int len;
+		const char *name;
+		U_CHAR *buf;
+		const struct line_map *map = pfile->map;
 
-						 if (node->value.builtin == BT_BASE_FILE)
-						 while (!MAIN_FILE_P(map))
-							 map = INCLUDED_FROM(&pfile->line_maps, map);
+		/* Èç¹ûÊÇbaseÐÍµÄ£¬Òª½øÐÐ´¦Àí */
+		 if (node->value.builtin == BT_BASE_FILE)
+			while (!MAIN_FILE_P(map))
+				map = INCLUDED_FROM(&pfile->line_maps, map);
 
-						 name = map->to_file;
-						 len = strlen(name);
-						 buf = _cpp_unaligned_alloc(pfile, len * 4 + 1);
-						 len = cpp_quote_string(buf, (const unsigned char *)name, len) - buf;
+		/* ½«map->tofile×ª»»³É×Ö·û´®token¡£ */
+		name = map->to_file;
+		len = strlen(name);
+		buf = _cpp_unaligned_alloc(pfile, len * 4 + 1);
+		len = cpp_quote_string(buf, (const unsigned char *)name, len) - buf;
 
-						 result = new_string_token(pfile, buf, len);
+		result = new_string_token(pfile, buf, len);
 	}
 		break;
 
-	case BT_INCLUDE_LEVEL:
+	case BT_INCLUDE_LEVEL:/* `__INCLUDE_LEVEL__' */
 		/* The line map depth counts the primary source as level 1, but
 		historically __INCLUDE_DEPTH__ has called the primary source
 		level 0.  */
+		/* line map Éî¶È¼ÇÂ¼»ù´¡Ô´µÄ²ã¼¶Îª1£¬
+		  * µ«ÊÇÀúÊ·µÄÕâ¸öºêÈÏÎª»ù´¡Ô´ÊÇ²ã¼¶0 
+		  */
 		result = new_number_token(pfile, pfile->line_maps.depth - 1);
 		break;
 
-	case BT_SPECLINE:
+	case BT_SPECLINE:/* `__LINE__' */
 		/* If __LINE__ is embedded in a macro, it must expand to the
 		line of the macro's invocation, not its definition.
 		Otherwise things like assert() will not work properly.  */
+		/* »ñÈ¡¸ÃºêtokenµÄÎ»ÖÃÐÅÏ¢£¬×÷ÎªÐÐºÅ */
 		result = new_number_token(pfile,
 			SOURCE_LINE(pfile->map,
 			pfile->cur_token[-1].line));
 		break;
 
-	case BT_STDC:
+	case BT_STDC:/* `__STDC__' */
 	{
-					int stdc = (!CPP_IN_SYSTEM_HEADER(pfile)
-						|| pfile->spec_nodes.n__STRICT_ANSI__->type != NT_VOID);
-					result = new_number_token(pfile, stdc);
+		/* ¸ù¾ÝÊÇ·ñÑÏ¸ñ×ñÑ­±ê×¼ C À´È·¶¨Îª0»¹ÊÇ1 */
+		int stdc = (!CPP_IN_SYSTEM_HEADER(pfile)
+			|| pfile->spec_nodes.n__STRICT_ANSI__->type != NT_VOID);
+		result = new_number_token(pfile, stdc);
 	}
 		break;
 
-	case BT_DATE:
-	case BT_TIME:
+	case BT_DATE:/* `__DATE__' */
+	case BT_TIME:/* `__TIME__' */
 		if (pfile->date.type == CPP_EOF)
 		{
 			/* Allocate __DATE__ and __TIME__ strings from permanent
 			storage.  We only do this once, and don't generate them
 			at init time, because time() and localtime() are very
 			slow on some systems.  */
+			/* ÕâÊÇÊÇËæ±ã·µ»ØµÄÖµ£¬¹þ¹þ */
 #if 0
 			time_t tt = time(NULL);
 			struct tm *tb = localtime(&tt);
@@ -235,9 +261,12 @@ cpp_hashnode *node;
 			result = &pfile->time;
 		break;
 
-	case BT_PRAGMA:
+	case BT_PRAGMA:/* `_Pragma' operator */
 		/* Don't interpret _Pragma within directives.  The standard is
 		not clear on this, but to me this makes most sense.  */
+		/* ²»Òª½âÊÍÖ¸ÁîÖÐµÄ_Pragma¡£Õâ¸öµÄ±ê×¼²»ÇåÎú£¬
+		  * µ«ÊÇ¶ÔÓÚÎÒÀ´Ëµ·Ç³£ÓÐÒâÒå¿
+		  */
 		if (pfile->state.in_directive)
 			return 0;
 
@@ -245,6 +274,7 @@ cpp_hashnode *node;
 		return 1;
 	}
 
+	/* ½«½âÎöºÃµÄÄÚÇ¶ºê±£´æµ½context¶ÑÕ»ÖÐ */
 	push_token_context(pfile, NULL, result, 1);
 	return 1;
 }
@@ -961,6 +991,9 @@ macro_arg *args;
 				/* GCC ¶Ô", ## b" ÓÐÌØÊâµÄÓïÒåÈç¹ûbÊÇÒ»¸ö¿É±ä²ÎÊý£¬
 				  * ¼´£ºÈç¹ûbÃ»ÓÐ±»¸³ÓèÊµ¼Ê²ÎÊý£¨²»½öµ±bÊÇ¿Õ²ÎÊý£©£¬
 				  * ·ñÔò£¬pasteµÄ±íÊ¾½«±»ÒÆ³ý¡£
+				  * #define DEBUG(format, ...) printf (format, ##__VA_ARGS__)
+				  * £¨' ## 'µÄÒâË¼ÊÇ£¬Èç¹û¿É±ä²ÎÊý±»ºöÂÔ»òÎª¿Õ£¬
+				  * ½«Ê¹Ô¤´¦ÀíÆ÷£¨ preprocessor £©È¥³ýµôËüÇ°ÃæµÄÄÇ¸ö¶ººÅ¡££©
 				  */
 				if (dest[-1]->type == CPP_COMMA
 					&& macro->variadic
