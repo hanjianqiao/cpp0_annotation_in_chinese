@@ -1284,6 +1284,7 @@ cpp_reader *pfile;
 
 /* Destringize IN into a temporary buffer, by removing the first \ of
 \" and \\ sequences, and process the result as a #pragma directive.  */
+/* 将字符串非字符串化，并将得到的结果作为#pragma的指令执行 */
 static void
 destringize_and_run(pfile, in)
 cpp_reader *pfile;
@@ -1292,10 +1293,12 @@ const cpp_string *in;
 	const unsigned char *src, *limit;
 	char *dest, *result;
 
+	/* 为解析出来的目的数据申请空间 */
 	dest = result = alloca(in->len + 1);
 	for (src = in->text, limit = src + in->len; src < limit;)
 	{
 		/* We know there is a character following the backslash.  */
+		/* 这里处理的转义符号就这两种 */
 		if (*src == '\\' && (src[1] == '\\' || src[1] == '"'))
 			src++;
 		*dest++ = *src++;
