@@ -1240,12 +1240,14 @@ cpp_reader *pfile;
 }
 
 /* Get a token but skip padding.  */
+/* 获取一个非填充类型的token */
 static const cpp_token *
 get_token_no_padding(pfile)
 cpp_reader *pfile;
 {
 	for (;;)
 	{
+		/* 直到获取到一个非填充型的token，返回 */
 		const cpp_token *result = cpp_get_token(pfile);
 		if (result->type != CPP_PADDING)
 			return result;
@@ -1254,22 +1256,29 @@ cpp_reader *pfile;
 
 /* Check syntax is "(string-literal)".  Returns the string on success,
 or NULL on failure.  */
+/* 检查"(string-literal)" 形式的语法。成功返回字符串token的指针，
+  * 失败返回零
+  */
 static const cpp_token *
 get__Pragma_string(pfile)
 cpp_reader *pfile;
 {
 	const cpp_token *string;
 
+	/* 第一个token必须是左括号 */
 	if (get_token_no_padding(pfile)->type != CPP_OPEN_PAREN)
 		return NULL;
 
+	/* 第二个token必须是字符串类型的 */
 	string = get_token_no_padding(pfile);
 	if (string->type != CPP_STRING && string->type != CPP_WSTRING)
 		return NULL;
 
+	/* 第三个token必须是右括号 */
 	if (get_token_no_padding(pfile)->type != CPP_CLOSE_PAREN)
 		return NULL;
 
+	/* 如果完全正确，则返回字符串的token指针 */
 	return string;
 }
 
@@ -1297,10 +1306,12 @@ const cpp_string *in;
 }
 
 /* Handle the _Pragma operator.  */
+/* 处理_Pragma操作符 */
 void
 _cpp_do__Pragma(pfile)
 cpp_reader *pfile;
 {
+	/* 获取_Pragma 后面的字符串 */
 	const cpp_token *string = get__Pragma_string(pfile);
 
 	if (!string)
