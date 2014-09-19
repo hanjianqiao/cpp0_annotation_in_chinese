@@ -427,6 +427,7 @@ int indented;
 
 /* Directive handler wrapper used by the command line option
 processor.  */
+/* 命令行处理器所使用的指令处理器封装 */
 static void
 run_directive(pfile, dir_no, buf, count)
 cpp_reader *pfile;
@@ -434,14 +435,20 @@ int dir_no;
 const char *buf;
 size_t count;
 {
+	/* 申请缓冲并压入栈 */
 	cpp_push_buffer(pfile, (const U_CHAR *)buf, count,
 		/* from_stage3 */ true, 1);
+	/* 开始解析指令 */
 	start_directive(pfile);
 	/* We don't want a leading # to be interpreted as a directive.  */
 	pfile->buffer->saved_flags = 0;
+	/* 获取宏指令对应的执行函数 */
 	pfile->directive = &dtable[dir_no];
+	/* 执行宏指令对应的执行函数 */
 	(void)(*pfile->directive->handler) (pfile);
+	/* 结束指令 */
 	end_directive(pfile, 1);
+	/* 缓冲区出栈 */
 	_cpp_pop_buffer(pfile);
 }
 
@@ -1938,6 +1945,10 @@ int return_at_eof;
 /* If called from do_line, pops a single buffer.  Otherwise pops all
 buffers until a real file is reached.  Generates appropriate
 call-backs.  */
+/* 如果是从do_line的调用，就只会弹出一个buffer。
+  * 否则的话，一直弹出缓冲，知道遇见真正的文件。
+  * 生成合适的回调
+  */
 void
 _cpp_pop_buffer(pfile)
 cpp_reader *pfile;
@@ -1948,20 +1959,25 @@ cpp_reader *pfile;
 
 	/* Walk back up the conditional stack till we reach its level at
 	entry to this file, issuing error messages.  */
+	/* 如果有条件栈，就会出错 */
 	for (ifs = buffer->if_stack; ifs; ifs = ifs->next)
 		cpp_error_with_line(pfile, ifs->line, 0,
 		"unterminated #%s", dtable[ifs->type].name);
 
 	/* In case of a missing #endif.  */
+	/* 以防没有#endif */
 	pfile->state.skipping = 0;
 
 	/* Update the reader's buffer before _cpp_do_file_change.  */
+	/* 在执行_cpp_do_file_change之前更新缓冲区指针 */
 	pfile->buffer = buffer->prev;
 
 	if (buffer->inc)
+		/* 如果这是个引用缓冲 */
 		pushed = _cpp_pop_file_buffer(pfile, buffer->inc);
 
 	if (!pushed)
+		/* 获取到了缓冲的数据 */
 		obstack_free(&pfile->buffer_ob, buffer);
 }
 

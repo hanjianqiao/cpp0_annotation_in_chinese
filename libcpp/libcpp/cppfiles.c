@@ -509,6 +509,7 @@ fail:
 }
 
 /* Drop INC's buffer from memory, if we are unlikely to need it again.  */
+/* 不再需要这个缓冲，将其释放 */
 static void
 purge_cache(inc)
 struct include_file *inc;
@@ -806,6 +807,9 @@ const char *fname;
 
 /* Do appropriate cleanup when a file INC's buffer is popped off the
 input stack.  Push the next -include file, if any remain.  */
+/* 在将引用缓冲弹出输入堆栈之后进行清理。
+  * 如果还有剩余的引用文件，将其压入栈
+  */
 bool
 _cpp_pop_file_buffer(pfile, inc)
 cpp_reader *pfile;
@@ -815,22 +819,29 @@ struct include_file *inc;
 
 	/* Record the inclusion-preventing macro, which could be NULL
 	meaning no controlling macro.  */
+	/* 记录阻止引用宏，如果该宏为NULL 则表示无控制 */
 	if (pfile->mi_valid && inc->cmacro == NULL)
 		inc->cmacro = pfile->mi_cmacro;
 
 	/* Invalidate control macros in the #including file.  */
+	/* 是#include中的宏无效化 */
 	pfile->mi_valid = false;
 
 	inc->refcnt--;
+	/* 如果没有栈缓冲使用该文件，并且该文件被设置为不再读取 */
 	if (inc->refcnt == 0 && DO_NOT_REREAD(inc))
+		/* 释放这个文件占用的缓冲 */
 		purge_cache(inc);
 
 	/* Don't generate a callback for popping the main file.  */
+	/* 弹出主文件时不产生回调 */
 	if (pfile->buffer)
 	{
+		/* 处理文件离开 */
 		_cpp_do_file_change(pfile, LC_LEAVE, 0, 0, 0);
 
 		/* Finally, push the next -included file, if any.  */
+		/* 如果有的话将下一个引用文件压栈 */
 		if (!pfile->buffer->prev)
 			pushed = _cpp_push_next_buffer(pfile);
 	}
