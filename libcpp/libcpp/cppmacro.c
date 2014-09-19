@@ -270,6 +270,7 @@ cpp_hashnode *node;
 		if (pfile->state.in_directive)
 			return 0;
 
+		/* ¥¶¿Ì_Pragma∫Í÷∏¡Ó */
 		_cpp_do__Pragma(pfile);
 		return 1;
 	}

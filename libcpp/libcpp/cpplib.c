@@ -1312,6 +1312,7 @@ const cpp_string *in;
 	}
 	*dest = '\0';
 
+	/* 执行内嵌宏指令 */
 	run_directive(pfile, T_PRAGMA, result, dest - result);
 }
 
@@ -1339,6 +1340,7 @@ cpp_reader *pfile;
 		Getting these correct line markers is a little tricky.  */
 
 		unsigned int orig_line = pfile->line;
+		/* 将字符串处理成能执行的指令形式，并执行。 */
 		destringize_and_run(pfile, &string->val.str);
 		pfile->line = orig_line;
 		pfile->buffer->saved_flags = BOL;

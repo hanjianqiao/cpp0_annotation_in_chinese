@@ -733,6 +733,9 @@ int angle_brackets;
 /* Handles #include-family directives (distinguished by TYPE),
 including HEADER, and the command line -imacros and -include.
 Returns true if a buffer was stacked.  */
+/* 处理包括引用头文件、命令行宏和include指令的#inlcude类的指令。
+  * 如果缓冲压栈成功则返回真。
+  */
 bool
 _cpp_execute_include(pfile, header, type)
 cpp_reader *pfile;
@@ -751,6 +754,7 @@ enum include_type type;
 	}
 	else if (inc != NO_INCLUDE_PATH)
 	{
+		/* 压栈 */
 		stacked = stack_include_file(pfile, inc);
 
 		/* 如果是#import指定的文件，则设置不能重复读取 */

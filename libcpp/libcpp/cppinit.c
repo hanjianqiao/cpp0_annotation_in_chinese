@@ -897,6 +897,9 @@ cpp_reader *pfile;
 
 /* Pushes a command line -imacro and -include file indicated by P onto
 the buffer stack.  Returns non-zero if successful.  */
+/* 将命令行宏和由P指定的引用文件压入栈。
+  * 成功返回非零
+  */
 static bool
 push_include(pfile, p)
 cpp_reader *pfile;
@@ -912,6 +915,7 @@ struct pending_option *p;
 	/* Make the command line directive take up a line.  */
 	pfile->line++;
 
+	/* 压栈 */
 	return _cpp_execute_include(pfile, &header, IT_CMDLINE);
 }
 
@@ -1063,6 +1067,10 @@ cpp_reader *pfile;
 /* Called to push the next buffer on the stack given by -include.  If
 there are none, free the pending structure and restore the line map
 for the main file.  */
+/* 用来将-include指令指定的下一个文件缓冲压栈。
+  * 如果没有指定，释放空间，恢复主文件的行图。
+  *
+  */
 bool
 _cpp_push_next_buffer(pfile)
 cpp_reader *pfile;
@@ -1073,27 +1081,31 @@ cpp_reader *pfile;
 	for reverting the line map.  Further, we only free the chains in
 	this conditional, so an early call to cpp_finish / cpp_destroy
 	will leak that memory.  */
+	/* 这样做并不完美，但我们不想对line map的所有都依赖于布尔值 */
 	if (CPP_OPTION(pfile, pending)
 		&& CPP_OPTION(pfile, pending)->imacros_head == NULL)
 	{
 		while (!pushed)
+			/* pushed的值为false */
 		{
 			struct pending_option *p = CPP_OPTION(pfile, pending)->include_head;
 
 			if (p == NULL)
-				break;
+				break;      //如果没有引用的文件，结束循环。
 			if (!CPP_OPTION(pfile, preprocessed))
-				pushed = push_include(pfile, p);
+				pushed = push_include(pfile, p);  //未被处理的话
 			CPP_OPTION(pfile, pending)->include_head = p->next;
 			free(p);
 		}
 
+		/* P == NULL */
 		if (!pushed)
 		{
 			free(CPP_OPTION(pfile, pending));
 			CPP_OPTION(pfile, pending) = NULL;
 
 			/* Restore the line map for the main file.  */
+			/* 恢复主文件的行图 */
 			if (!CPP_OPTION(pfile, preprocessed))
 				_cpp_do_file_change(pfile, LC_RENAME,
 				pfile->line_maps.maps[0].to_file, 1, 0);
