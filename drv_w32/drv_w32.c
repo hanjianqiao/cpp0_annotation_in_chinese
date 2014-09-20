@@ -54,6 +54,7 @@ void GOL_callmain0()
 
 extern UCHAR *GOL_work0;
 
+/* 将以\n为换行的字符串转换为windows处理的\r\n换行的字符串 */
 static int writefile(const UCHAR *name, const UCHAR *p0, const UCHAR *p1)
 {
 	UCHAR *q, c;
@@ -62,10 +63,11 @@ static int writefile(const UCHAR *name, const UCHAR *p0, const UCHAR *p1)
 	while (p0 < p1) {
 		c = *p0++;
 		if (c == '\n')
-			*q++ = '\r';
+			*q++ = '\r';  //如果c是换行，在c加入到q之前在q加入\r。
+
 		if (c == '\r') {
 			if (p0 < p1 && *p0 == '\n') {
-				*q++ = '\r';
+				*q++ = '\r';  //如果c是\r，在将\r加入q之后，将c设为换行，以备加入q。
 				c = '\n';
 				p0++;
 			}
@@ -77,7 +79,7 @@ static int writefile(const UCHAR *name, const UCHAR *p0, const UCHAR *p1)
 	return GOLD_write_b(name, q - GOL_work0, GOL_work0);
 }
 
-/* 系统推出函数 */
+/* 系统退出函数 */
 void GOL_sysabort(UCHAR termcode)
 {
 	static const UCHAR *termmsg[] = {
@@ -93,13 +95,17 @@ void GOL_sysabort(UCHAR termcode)
 	GO_stderr.p1 += 128; /* Resurrect minute that was set aside in reserve */
 	
 	/* The output buffer */
+	/* 将p0到p的数据写入GOL_outname指定的文件 */
 	if (writefile(GOL_outname, GO_stdout.p0, GO_stdout.p)) {
 		GO_fputs("GOL_sysabort:output error!\n", &GO_stderr);
 		termcode = 6;
 	}
+	/* 将termcode指定的termmsg字符串数组中的信息字符串输出 */
 	if (termcode <= 6)
 		GO_fputs(termmsg[termcode], &GO_stderr);
+	/* 如果还有数据没写完，将其写入标准输出(stdout) */
 	if (GO_stderr.p > GO_stderr.p0)
 		writefile(NULL, GO_stderr.p0, GO_stderr.p);
+	/* 退出 */
 	GOLD_exit((termcode == 0) ? GOL_retcode : 1);
 }
