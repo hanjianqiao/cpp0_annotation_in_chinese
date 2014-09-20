@@ -82,7 +82,9 @@ char **argv;
 
 	/* 初始化pfile结构，申请内存、初始化树结构等 */
 	/* Construct a reader with default language GNU C89.  */
+	/* 获取符合C89标准的读取器 */
 	pfile = cpp_create_reader(CLK_GNUC89);
+	/* 获取选项的指针 */
 	options = cpp_get_options(pfile);
 
 
@@ -100,6 +102,7 @@ char **argv;
 }
 
 /* Store the program name, and set the locale.  */
+/* 保存程序名称，设置字符集 */
 static void
 general_init(argv0)
 const char *argv0;

@@ -72,9 +72,12 @@ static int writefile(const UCHAR *name, const UCHAR *p0, const UCHAR *p1)
 		}
 		*q++ = c;
 	}
+
+	/* 将GOL_work0至p的数据写入文件 */
 	return GOLD_write_b(name, q - GOL_work0, GOL_work0);
 }
 
+/* 系统推出函数 */
 void GOL_sysabort(UCHAR termcode)
 {
 	static const UCHAR *termmsg[] = {
@@ -86,7 +89,9 @@ void GOL_sysabort(UCHAR termcode)
 		"[TERM_SYSRESOVER]\n",
 		"[TERM_ABORT]\n"
 	};
+	
 	GO_stderr.p1 += 128; /* Resurrect minute that was set aside in reserve */
+	
 	/* The output buffer */
 	if (writefile(GOL_outname, GO_stdout.p0, GO_stdout.p)) {
 		GO_fputs("GOL_sysabort:output error!\n", &GO_stderr);

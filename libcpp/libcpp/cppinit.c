@@ -486,6 +486,7 @@ init_library()
 }
 
 /* Initialize a cpp_reader structure.  */
+/* 初始化cpp_reader结构体 */
 cpp_reader *
 cpp_create_reader(lang)
 enum c_lang lang;
