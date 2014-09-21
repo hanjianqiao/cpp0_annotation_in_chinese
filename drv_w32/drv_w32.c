@@ -1,10 +1,10 @@
-#include "windows.h"
+#include "windows.h"  //包含win32API函数原型的声明
 
 typedef unsigned char UCHAR;
 
 typedef struct GO_STR_FILE {
 	UCHAR *p0, *p1, *p;
-	int dummy;
+	int dummy; //为了对齐到16字节的填充
 } GO_FILE;
 
 extern GO_FILE GO_stdin, GO_stdout, GO_stderr;
