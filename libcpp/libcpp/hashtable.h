@@ -24,11 +24,15 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 /* This is what each hash table entry points to.  It may be embedded
    deeply within another object.  */
+/*
+这个结构体是每个哈希表项指向的结构，
+这个结构可能是另一个对象的内部结构。
+*/
 typedef struct ht_identifier ht_identifier;
 struct ht_identifier
 {
-  unsigned int len;
-  const unsigned char *str;
+  unsigned int len;          //长度
+  const unsigned char *str;  //数据
 };
 
 #define HT_LEN(NODE) ((NODE)->len)

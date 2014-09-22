@@ -435,6 +435,11 @@ enum builtin_type
 /* The common part of an identifier node shared amongst all 3 C front
    ends.  Also used to store CPP identifiers, which are a superset of
    identifiers in the grammatical sense.  */
+/* 所有的3C前端共享使用的标识符节点的一般部分。
+ * 也用来存储CPP标识符，CPP标识符是有语义的标识符的超级。
+ *
+ *
+ */
 struct cpp_hashnode
 {
   struct ht_identifier ident;

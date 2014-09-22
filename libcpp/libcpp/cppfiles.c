@@ -84,23 +84,24 @@ C.  It is unlikely that glibc's strcmp macro helps this file at all.  */
 /* #undef strcmp */
 
 /* This structure is used for the table of all includes.  */
+/* 所有文件的表示用这个结构体 */
 struct include_file
 {
-	const char *name;		/* actual path name of file */
-	const cpp_hashnode *cmacro;	/* macro, if any, preventing reinclusion.  */
-	const struct search_path *foundhere;
+	const char *name;		/* actual path name of file *//* 文件的真实路径名称 */
+	const cpp_hashnode *cmacro;	/* macro, if any, preventing reinclusion.  *//* 用来防止宏的重复引用 */
+	const struct search_path *foundhere;/* 在搜索路径中找到文件的位置，#include_next和sysp。 */
 	/* location in search path where file was
 	found, for #include_next and sysp.  */
-	const unsigned char *buffer;	/* pointer to cached file contents */
-	unsigned int size;
+	const unsigned char *buffer;	/* pointer to cached file contents *//* 指向缓冲了的文件内容 */
+	unsigned int size;/* 文件大小？ */
 #if 0
 	struct stat st;		/* copy of stat(2) data for file */
 #endif
-	FILE *fp;			/* fd open on file (short term storage only) */
-	int err_no;			/* errno obtained if opening a file failed */
-	unsigned short include_count;	/* number of times file has been read */
-	unsigned short refcnt;	/* number of stacked buffers using this file */
-	unsigned char mapped;		/* file buffer is mmapped */
+	FILE *fp;			/* fd open on file (short term storage only) *//* 文件指针 */
+	int err_no;			/* errno obtained if opening a file failed *//* 文件打开失败的错误代码 */
+	unsigned short include_count;	/* number of times file has been read *//* 文件被读取的次数 */
+	unsigned short refcnt;	/* number of stacked buffers using this file *//* 引用该文件的已压栈的缓冲个数 */
+	unsigned char mapped;		/* file buffer is mmapped *//* 文件缓冲是否mmapped */
 };
 
 /* Variable length record files on VMS will have a stat size that includes

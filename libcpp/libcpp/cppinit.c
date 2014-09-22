@@ -526,7 +526,7 @@ enum c_lang lang;
 	CPP_OPTION(pfile, tabstop) = 8;             //tab的宽度
 	CPP_OPTION(pfile, operator_names) = 1;      //处理C++的替换名称
 #if DEFAULT_SIGNED_CHAR      // 1
-	CPP_OPTION(pfile, signed_char) = 1;
+	CPP_OPTION(pfile, signed_char) = 1;         //有符号的字符类型
 #else
 	CPP_OPTION(pfile, signed_char) = 0;
 #endif
