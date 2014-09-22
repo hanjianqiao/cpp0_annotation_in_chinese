@@ -134,7 +134,7 @@ struct lexer_state
 	unsigned char in_directive;
 
 	/* True if we are skipping a failed conditional group.  */
-	/* Èç¹ûºöÂÔÁËÄ³¸ö×é£¬Õâ¸öÖµ¾ÍÊÇ·ÇÁE*/
+	/* Èç¹ûºöÂÔÁËÄ³¸ö×é£¬Õâ¸öÖµ¾ÍÊÇ·ÇÁã*/
 	unsigned char skipping;
 
 	/* Nonzero if in a directive that takes angle-bracketed headers.  */
@@ -171,7 +171,7 @@ struct spec_nodes
 };
 
 /* Represents the contents of a file cpplib has read in.  */
-/* ±£´æcpplib¶ÁÈEÄÎÄ¼şÄÚÈİ */
+/* ±£´æcpplib¶ÁÈ¡µÄÎÄ¼şÄÚÈİ */
 struct cpp_buffer
 {
 	const unsigned char *cur;	 /* current position */ /* µ±Ç°Î»ÖÃ */
@@ -179,10 +179,10 @@ struct cpp_buffer
 	const unsigned char *rlimit; /* end of valid data *//* ÓĞĞ§Êı¾İµÄ½áÎ² */
 	const unsigned char *line_base; /* start of current line *//* µ±Ç°ĞĞµÄ¿ªÍ· */
 
-	/* Ö¸ÏòÁ´±úòĞÉÏÒ»¸ö»º³E*/
+	/* Ö¸Ïò»º³åÇøÁ´±íµÄÉÏÒ»¸ö»º³åÇø */
 	struct cpp_buffer *prev;
 
-	/* Õû¸ö»º³åÇøµÄÖ¸ÕE*/
+	/* Õû¸ö»º³åÇø»º³åµÄµØÖ· */
 	const unsigned char *buf;	 /* Entire character buffer.  */
 
 	/* Pointer into the include table; non-NULL if this is a file
@@ -200,19 +200,19 @@ struct cpp_buffer
 	struct if_stack *if_stack;
 
 	/* Token column position adjustment owing to tabs in whitespace.  */
-	/* ÓÉÓÚtabÒıÆğµÄtokenµÄÁĞµÄÎ»ÖÃµ÷ÕE*/
+	/* ÓÉÓÚtabÒıÆğµÄtokenµÄÁĞµÄÎ»ÖÃµ÷Õû */
 	unsigned int col_adjust;
 
 	/* Contains PREV_WHITE and/or AVOID_LPASTE.  */
-	/* ±£´æ±E¾PREV_WHITE and/or AVOID_LPASTE */
+	/* ±£´æ±êÖ¾REV_WHITE and/or AVOID_LPASTE */
 	unsigned char saved_flags;
 
 	/* Because of the way the lexer works, -Wtrigraphs can sometimes
 	warn twice for the same trigraph.  This helps prevent that.  */
-	/* ÓÉÓÚ´Ê·¨·ÖÎöµÄ¹¤×÷Ô­Àú¿¬-Wtrigraphs¿ÉÄÜÔÚÓĞĞ©Ê±ºò»E
-	  * Ê¹µÃÍ¬Ò»¸öÈıÄ¿Ê½·¢³öÁ½´Î¾¯¸æ¡£
-	  * Õâ¸ö±äÁ¿ÓÃÀ´·ÀÖ¹ÕâÖÖÇé¿öµÄ·¢Éú¡£
-	  */
+	/* ÓÉÓÚ´Ê·¨·ÖÎöµÄ¹¤×÷µÄÔ­Àí-Wtrigraphs¿ÉÄÜÔÚÓĞĞ©Ê±ºò»á
+	 * Ê¹µÃÍ¬Ò»¸öÈıÄ¿Ê½·¢³öÁ½´Î¾¯¸æ¡£
+	 * Õâ¸ö±äÁ¿ÓÃÀ´·ÀÖ¹ÕâÖÖÇé¿öµÄ·¢Éú¡£
+	 */
 	const unsigned char *last_Wtrigraphs;
 
 	/* True if we have already warned about C++ comments in this file.
@@ -228,16 +228,16 @@ struct cpp_buffer
 	/* True if we don't process trigraphs and escaped newlines.  True
 	for preprocessed input, command line directives, and _Pragma
 	buffers.  */
-	/* µ±Ã»ÓĞÔÚ´¦ÀúäıÄ¿Ê½ºÍ×ªÒå»»ĞĞµÄÊ±ºòÕâ¸ö±äÁ¿ÎªÕæ¡£
-	  * ¶ÔÓÚpreprocessed input¡¢command line directivesºÍ_Pragma buffersÕâ¸ö±äÁ¿µÄÖµÎªÕæ¡£
-	  */
+	/* µ±Ã»ÓĞÔÚ´¦ÀíÈıÄ¿Ê½ºÍ×ªÒå»»ĞĞµÄÊ±ºòÕâ¸ö±äÁ¿ÎªÕæ¡£
+	 * ¶ÔÓÚpreprocessed input¡¢command line directivesºÍ_Pragma buffersÕâ¸ö±äÁ¿µÄÖµÎªÕæ¡£
+	 */
 	unsigned char from_stage3;
 
 	/* Nonzero means that the directory to start searching for ""
 	include files has been calculated and stored in "dir" below.  */
-	/* ·ÇÁãÖµ±úæ¾¿ªÊ¼ËÑËE"ÀàĞÍÒıÓÃÎÄ¼şµÄÄ¿Â¼ÒÑ¾­
-	  * ±»´¦ÀúÕı²¢´æ·ÅÔÚÏÂÃæµÄdir±äÁ¿ÖĞ¡£
-	  */
+	/* ·ÇÁãÖµ±íÊ¾¿ªÊ¼ËÑ""ÀàĞÍÒıÓÃÎÄ¼şµÄÄ¿Â¼ÒÑ¾­
+	 * ±»´¦ÀíÕı²¢´æ·ÅÔÚÏÂÃæµÄdir±äÁ¿ÖĞ¡£
+	 */
 	unsigned char search_cached;
 
 	/* At EOF, a buffer is automatically popped.  If RETURN_AT_EOF is
@@ -245,7 +245,7 @@ struct cpp_buffer
 	token from the enclosing buffer is returned.  */
 	/* »º³åÇøÔÚÎÄ¼şÄ©Î²»á×Ô¶¯µ¯³ö¡£
 	  * Èç¹ûÕâ¸öÖµÎªÕæ£¬ÔÚÎÄ¼şÄ©Î²·µ»ØµÄÊÇCPP_EOF token£¬
-	  * ·ñÔòµÄ»°£¬µ±Ç°bufferÁÙ½EÄ»º³åÇøµÄtoken»á±»·µ»Ø¡£
+	  * ·ñÔòµÄ»°£¬µ±Ç°bufferÁÙ½üµÄ»º³åÇøµÄtoken»á±»·µ»Ø¡£
 	  */
 	bool return_at_eof;
 
@@ -261,7 +261,7 @@ tokens.  Usually, there is only one cpp_reader object active.  */
 struct cpp_reader
 {
 	/* Top of buffer stack.  */
-	/* »º³åÈ¥Ö¸ÕE¬Ö¸Ïò»º³åÇø¿ªÍ· */
+	/* »º³åÇøÖ¸ÕëÖ¸Ïò»º³åÇø¿ªÍ· */
 	cpp_buffer *buffer;
 
 	/* Lexer state.  */
