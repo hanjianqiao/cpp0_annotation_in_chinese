@@ -72,6 +72,7 @@ static cpp_options *options;	/* Options of pfile.  */
 static struct printer print;
 
 /* !kawai! */
+/* 主函数1 */
 int main1(argc, argv)
 /* end of !kawai! */
 int argc;
@@ -111,7 +112,7 @@ const char *argv0;
 
 	/* IS_DIR_SEPARATOR 是判断字符是不是'/' 或者'\\' */
 	while (progname != argv0 && !IS_DIR_SEPARATOR(progname[-1]))
-		--progname;
+		--progname;  //progname指向的是不带路径的程序名称
 
 	/* !kawai! */
 	/* xmalloc_set_program_name (progname); */

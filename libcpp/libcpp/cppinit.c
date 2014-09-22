@@ -399,6 +399,7 @@ cpp_reader *pfile;
 
 /* A set of booleans indicating what CPP features each source language
 requires.  */
+/* CPP特性的列表 */
 struct lang_flags
 {
 	char c99;
@@ -412,6 +413,7 @@ struct lang_flags
 };
 
 /* ??? Enable $ in identifiers in assembly? */
+/* 各个版本语言的特性 */
 static const struct lang_flags lang_defaults[] =
 { /*              c99 objc c++ xnum trig dollar c++comm digr  */
 	/* GNUC89 */{ 0, 0, 0, 1, 0, 1, 1, 1 },
@@ -427,6 +429,7 @@ static const struct lang_flags lang_defaults[] =
 };
 
 /* Sets internal flags correctly for a given language.  */
+/* 设置目标语言的内部标志 */
 static void
 set_lang(pfile, lang)
 cpp_reader *pfile;
@@ -434,22 +437,24 @@ enum c_lang lang;
 {
 	const struct lang_flags *l = &lang_defaults[(int)lang];
 
+	/* 设置pfile的opt成员的各个标志的值。 */
 	CPP_OPTION(pfile, lang) = lang;
 
-	CPP_OPTION(pfile, c99) = l->c99;
-	CPP_OPTION(pfile, objc) = l->objc;
-	CPP_OPTION(pfile, cplusplus) = l->cplusplus;
-	CPP_OPTION(pfile, extended_numbers) = l->extended_numbers;
-	CPP_OPTION(pfile, trigraphs) = l->trigraphs;
-	CPP_OPTION(pfile, dollars_in_ident) = l->dollars_in_ident;
-	CPP_OPTION(pfile, cplusplus_comments) = l->cplusplus_comments;
-	CPP_OPTION(pfile, digraphs) = l->digraphs;
+	CPP_OPTION(pfile, c99) = l->c99;                               //是否c99
+	CPP_OPTION(pfile, objc) = l->objc;                             //是否objc
+	CPP_OPTION(pfile, cplusplus) = l->cplusplus;                   //是否c++
+	CPP_OPTION(pfile, extended_numbers) = l->extended_numbers;     //是否扩展数值
+	CPP_OPTION(pfile, trigraphs) = l->trigraphs;                   //是否支持三目式
+	CPP_OPTION(pfile, dollars_in_ident) = l->dollars_in_ident;     //是否允许标识符内含有$
+	CPP_OPTION(pfile, cplusplus_comments) = l->cplusplus_comments; //是否支持c++风格的注释
+	CPP_OPTION(pfile, digraphs) = l->digraphs;                     //是否支持二目式
 }
 
 #ifdef HOST_EBCDIC
 static int opt_comp PARAMS((const void *, const void *));
 
 /* Run-time sorting of options array.  */
+/* 比较两个选项的字符串 */
 static int
 opt_comp(p1, p2)
 const void *p1, *p2;
@@ -461,9 +466,14 @@ const void *p1, *p2;
 
 /* init initializes library global state.  It might not need to
 do anything depending on the platform and compiler.  */
+/* 初始化函数库的全局状态。
+  * 但是实际上由于运行平台和编译器，
+  * 初始化并不需要做什么事情。
+  */
 static void
 init_library()
 {
+	/* 用来确保这个函数只会被执行一次。 */
 	static int initialized = 0;
 
 	if (!initialized)
@@ -474,19 +484,25 @@ init_library()
 #ifdef HOST_EBCDIC
 		/* For non-ASCII hosts, the cl_options array needs to be sorted at
 		runtime.  */
+		/* 对于非ASCII标准的宿主机，cl_options数组需要在运行时排序。 */
 		qsort(cl_options, N_OPTS, sizeof (struct cl_option), opt_comp);
 #endif
 
 		/* Set up the trigraph map.  This doesn't need to do anything if
 		we were compiled with a compiler that supports C99 designated
 		initializers.  */
-		/* 这是个空函数 */
+		/* 这是个空函数，
+		  * 三目式的初始化不需要做什么事情，
+		  * 三目式用一个数组表示了。
+		  */
 		init_trigraph_map();
 	}
 }
 
 /* Initialize a cpp_reader structure.  */
-/* 初始化cpp_reader结构体 */
+/* 初始化cpp_reader结构体，
+  * 设置一些标志。
+  */
 cpp_reader *
 cpp_create_reader(lang)
 enum c_lang lang;
@@ -499,13 +515,16 @@ enum c_lang lang;
 
 	/* xcalloc当malloc理解应该没问题 */
 	pfile = (cpp_reader *)xcalloc(1, sizeof (cpp_reader));
-	/* 下面的这几行是将pfile中的标志设为相应值 */
+
+	/* 设置语言特性相关的标志 */
 	set_lang(pfile, lang);
-	CPP_OPTION(pfile, warn_import) = 1;
-	CPP_OPTION(pfile, discard_comments) = 1;
-	CPP_OPTION(pfile, show_column) = 1;
-	CPP_OPTION(pfile, tabstop) = 8;
-	CPP_OPTION(pfile, operator_names) = 1;
+	
+	/* 下面的这几行是将pfile中关于基本选项的标志设为相应值 */
+	CPP_OPTION(pfile, warn_import) = 1;         //遇到import发出警告
+	CPP_OPTION(pfile, discard_comments) = 1;    //输出代码中丢弃注释
+	CPP_OPTION(pfile, show_column) = 1;         //错误信息是否输出列号
+	CPP_OPTION(pfile, tabstop) = 8;             //tab的宽度
+	CPP_OPTION(pfile, operator_names) = 1;      //处理C++的替换名称
 #if DEFAULT_SIGNED_CHAR      // 1
 	CPP_OPTION(pfile, signed_char) = 1;
 #else
