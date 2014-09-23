@@ -26,6 +26,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include "system.h"
 #include "cppdefault.h"
 
+/* 没有默认引用文件 */
 const struct default_include cpp_include_defaults[]
 	= { { 0, 0, 0, 0 } };
 const char cpp_GCC_INCLUDE_DIR[] = "";
