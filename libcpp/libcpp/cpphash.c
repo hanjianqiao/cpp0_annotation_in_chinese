@@ -1,9 +1,9 @@
 /* Hash tables for the CPP library.
-   Copyright (C) 1986, 1987, 1989, 1992, 1993, 1994, 1995, 1996, 1998,
-   1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-   Written by Per Bothner, 1994.
-   Based on CCCP program by Paul Rubin, June 1986
-   Adapted to ANSI C, Richard Stallman, Jan 1987
+Copyright (C) 1986, 1987, 1989, 1992, 1993, 1994, 1995, 1996, 1998,
+1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Written by Per Bothner, 1994.
+Based on CCCP program by Paul Rubin, June 1986
+Adapted to ANSI C, Richard Stallman, Jan 1987
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
@@ -19,124 +19,134 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
- In other words, you are welcome to use, share and improve this program.
- You are forbidden to forbid anyone else to use, share and improve
- what you give them.   Help stamp out software-hoarding!  */
+In other words, you are welcome to use, share and improve this program.
+You are forbidden to forbid anyone else to use, share and improve
+what you give them.   Help stamp out software-hoarding!  */
 
 #include "config.h"
 #include "system.h"
 #include "cpplib.h"
 #include "cpphash.h"
 
-static cpp_hashnode *alloc_node PARAMS ((hash_table *));
+static cpp_hashnode *alloc_node PARAMS((hash_table *));
 
 /* Return an identifier node for hashtable.c.  Used by cpplib except
-   when integrated with the C front ends.  */
+when integrated with the C front ends.  */
+/* 获取一个节点。 */
 static cpp_hashnode *
-alloc_node (table)
-     hash_table *table;
+alloc_node(table)
+hash_table *table;
 {
-  cpp_hashnode *node;
-  
-  node = (cpp_hashnode *) obstack_alloc (&table->pfile->hash_ob,
-					 sizeof (cpp_hashnode));
-  memset ((PTR) node, 0, sizeof (cpp_hashnode));
-  return node;
+	cpp_hashnode *node;
+
+	/* 分配一个节点的空间 */
+	node = (cpp_hashnode *)obstack_alloc(&table->pfile->hash_ob,
+		sizeof (cpp_hashnode));
+	/* 初始化内存数据 */
+	memset((PTR)node, 0, sizeof (cpp_hashnode));
+	return node;
 }
 
 /* Set up the identifier hash table.  Use TABLE if non-null, otherwise
-   create our own.  */
+create our own.  */
+/* 设置标识符哈希表 */
 void
-_cpp_init_hashtable (pfile, table)
-     cpp_reader *pfile;
-     hash_table *table;
+_cpp_init_hashtable(pfile, table)
+cpp_reader *pfile;
+hash_table *table;
 {
-  struct spec_nodes *s;
+	struct spec_nodes *s;
 
-  if (table == NULL)
-    {
+	if (table == NULL)
+	{
 
 		/* 有了一个哈希表? */
-      pfile->our_hashtable = 1;
+		pfile->our_hashtable = 1;
 
-	  /* 新建哈希表，个数2的13次幂 */
-      table = ht_create (13);	/* 8K (=2^13) entries.  */
+		/* 新建哈希表，个数2的13次幂 */
+		table = ht_create(13);	/* 8K (=2^13) entries.  */
 
-	  /* 指定分配哈希的函数 */
-      table->alloc_node = (hashnode (*) PARAMS ((hash_table *))) alloc_node;
+		/* 指定分配哈希的函数 */
+		table->alloc_node = (hashnode(*) PARAMS((hash_table *))) alloc_node;
 
-
-	  gcc_obstack_init (&pfile->hash_ob);
-    }
+		/* 初始化ob栈 */
+		gcc_obstack_init(&pfile->hash_ob);
+	}
 
 	/* 将pfile和table关联起来 */
-  table->pfile = pfile;
-  pfile->hash_table = table;
+	table->pfile = pfile;
+	pfile->hash_table = table;
 
-  /* Now we can initialize things that use the hash table.  */
-  /* 将所有选项指令存到哈希表中去 */
-  _cpp_init_directives (pfile);
-  /* 将默认的几个编译指示注册 */
-  _cpp_init_internal_pragmas (pfile);
+	/* Now we can initialize things that use the hash table.  */
+	/* 将所有选项指令存到哈希表中去 */
+	_cpp_init_directives(pfile);
+	/* 将默认的几个编译指示注册 */
+	_cpp_init_internal_pragmas(pfile);
 
 	/* 将预处理的指示添加到哈希表中 */
-  s = &pfile->spec_nodes;
-  s->n_defined		= cpp_lookup (pfile, DSC("defined"));
-  s->n_true		= cpp_lookup (pfile, DSC("true"));
-  s->n_false		= cpp_lookup (pfile, DSC("false"));
-  s->n__STRICT_ANSI__   = cpp_lookup (pfile, DSC("__STRICT_ANSI__"));
-  s->n__VA_ARGS__       = cpp_lookup (pfile, DSC("__VA_ARGS__"));
-  s->n__VA_ARGS__->flags |= NODE_DIAGNOSTIC;
+	s = &pfile->spec_nodes;
+	s->n_defined = cpp_lookup(pfile, DSC("defined"));
+	s->n_true = cpp_lookup(pfile, DSC("true"));
+	s->n_false = cpp_lookup(pfile, DSC("false"));
+	s->n__STRICT_ANSI__ = cpp_lookup(pfile, DSC("__STRICT_ANSI__"));
+	s->n__VA_ARGS__ = cpp_lookup(pfile, DSC("__VA_ARGS__"));
+	s->n__VA_ARGS__->flags |= NODE_DIAGNOSTIC;
 }
 
 /* Tear down the identifier hash table.  */
+/* 摧毁标识符哈希表 */
 void
-_cpp_destroy_hashtable (pfile)
-     cpp_reader *pfile;
+_cpp_destroy_hashtable(pfile)
+cpp_reader *pfile;
 {
-  if (pfile->our_hashtable)
-    {
-      ht_destroy (pfile->hash_table);
-      obstack_free (&pfile->hash_ob, 0);
-    }
+	if (pfile->our_hashtable)
+	{
+		/* 摧毁哈希表 */
+		ht_destroy(pfile->hash_table);
+		/* 释放空间 */
+		obstack_free(&pfile->hash_ob, 0);
+	}
 }
 
 /* Returns the hash entry for the STR of length LEN, creating one
-   if necessary.  */
+if necessary.  */
+/* 获取长度和字符串都指定的哈希实体，未找到的话创建该实体。 */
 cpp_hashnode *
-cpp_lookup (pfile, str, len)
-     cpp_reader *pfile;
-     const unsigned char *str;
-     unsigned int len;
+cpp_lookup(pfile, str, len)
+cpp_reader *pfile;
+const unsigned char *str;
+unsigned int len;
 {
-  /* ht_lookup cannot return NULL.  */
-  return CPP_HASHNODE (ht_lookup (pfile->hash_table, str, len, HT_ALLOC));
+	/* ht_lookup cannot return NULL.  */
+	return CPP_HASHNODE(ht_lookup(pfile->hash_table, str, len, HT_ALLOC));
 }
 
 /* Determine whether the str STR, of length LEN, is a defined macro.  */
+/* 确定长度为len的str是否是已被定义了的宏 */
 int
-cpp_defined (pfile, str, len)
-     cpp_reader *pfile;
-     const unsigned char *str;
-     int len;
+cpp_defined(pfile, str, len)
+cpp_reader *pfile;
+const unsigned char *str;
+int len;
 {
-  cpp_hashnode *node;
+	cpp_hashnode *node;
 
-  node = CPP_HASHNODE (ht_lookup (pfile->hash_table, str, len, HT_NO_INSERT));
+	node = CPP_HASHNODE(ht_lookup(pfile->hash_table, str, len, HT_NO_INSERT));
 
-  /* If it's of type NT_MACRO, it cannot be poisoned.  */
-  return node && node->type == NT_MACRO;
+	/* If it's of type NT_MACRO, it cannot be poisoned.  */
+	return node && node->type == NT_MACRO;
 }
 
 /* For all nodes in the hashtable, callback CB with parameters PFILE,
-   the node, and V.  */
+the node, and V.  */
+/* 对所有的哈希表节点使用指定的回调函数和V来执行回调函数 */
 void
-cpp_forall_identifiers (pfile, cb, v)
-     cpp_reader *pfile;
-     cpp_cb cb;
-     PTR v;
+cpp_forall_identifiers(pfile, cb, v)
+cpp_reader *pfile;
+cpp_cb cb;
+PTR v;
 {
-  /* We don't need a proxy since the hash table's identifier comes
-     first in cpp_hashnode.  */
-  ht_forall (pfile->hash_table, (ht_cb) cb, v);
+	/* We don't need a proxy since the hash table's identifier comes
+	first in cpp_hashnode.  */
+	ht_forall(pfile->hash_table, (ht_cb)cb, v);
 }
