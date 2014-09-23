@@ -2,7 +2,7 @@
 
 #define SIZ_STDOUT			(2 * 1024 * 1024)	//标准输出缓冲大小
 #define SIZ_STDERR			(16 * 1024)			//标准错误缓冲大小
-#define SIZ_WORK			(8 * 1024 * 1024)	//标准工作空间大小
+#define SIZ_WORK			(8 * 1024 * 1024)	//应用工作空间大小
 #define SIZ_SYSWRK			(2 * 1024 * 1024)	//系统工作空间大小
 
 /*

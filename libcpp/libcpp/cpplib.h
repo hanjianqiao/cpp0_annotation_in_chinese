@@ -442,6 +442,7 @@ enum builtin_type
  */
 struct cpp_hashnode
 {
+
   struct ht_identifier ident;
   unsigned short arg_index;		/* Macro argument index.  */
   unsigned char directive_index;	/* Index into directive table.  */
@@ -450,6 +451,7 @@ struct cpp_hashnode
   unsigned char flags;			/* CPP flags.  */
 
   union
+  	/* 这个联合体由四个变量共享，对于不同的节点，只有一个变量是有意义的 */
   {
     cpp_macro *macro;			/* If a macro.  */
     struct answer *answers;		/* Answers to an assertion.  */

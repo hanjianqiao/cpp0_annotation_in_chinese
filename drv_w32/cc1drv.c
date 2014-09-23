@@ -2,8 +2,9 @@ typedef unsigned char UCHAR;
 
 /* 这里的GO_FILE是系统的对象，不仅限于文件。 */
 typedef struct GO_STR_FILE {
+	/* 开始、结束、当前 */
 	UCHAR *p0, *p1, *p;
-	int dummy;
+	int dummy;  //填充
 } GO_FILE;
 
 /* 这些以GO开头的结构函数都是在go_lib.lib里面的。 */
@@ -45,5 +46,6 @@ void mainCRTStartup(void)
 	GOL_memmaninit(&GOL_sysman, SIZ_SYSWRK, bss0->syswrk);
 	GOL_memmaninit(&GOL_memman, SIZ_WORK, GOL_work0 = bss0->work);
 	
+	/* 调用下一步的主函数 */
 	GOL_callmain0();
 }

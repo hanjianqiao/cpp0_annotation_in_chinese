@@ -38,9 +38,10 @@ struct answer
 
 /* Stack of conditionals currently in progress
 (including both successful and failing conditionals).  */
+/* 处理进程中的条件栈 */
 struct if_stack
 {
-	struct if_stack *next;
+	struct if_stack *next;  /* 指向下一个 */
 	unsigned int line;		/* Line where condition started.  */
 	const cpp_hashnode *mi_cmacro;/* macro name for #ifndef around entire file */
 	bool skip_elses;		/* Can future #else / #elif be skipped?  */
