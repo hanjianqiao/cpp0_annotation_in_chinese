@@ -30,14 +30,21 @@ intrinsically how to calculate a hash value, and how to compare an
 existing entry with a potential new one.  Also, the ability to
 delete members from the table has been removed.  */
 
+/* 下面的代码是对弗拉基米尔·马卡罗夫可扩展哈希表（完全版见libiberty/ hashtab.c）
+的特性化。使用其通用形式的代价太大，所以这代码进行的删减。
+这部分代码能够计算散列值，并且能将现有条目与一个潜在的新条目进行比较。
+此外，从表中删除的成员的功能已被移除。 */
+
 static unsigned int calc_hash PARAMS((const unsigned char *, unsigned int));
 static void ht_expand PARAMS((hash_table *));
 
 /* Let particular systems override the size of a chunk.  */
+/* 如果某些操作系统已经有自己对这些宏的定义 */
 #ifndef OBSTACK_CHUNK_SIZE
 #define OBSTACK_CHUNK_SIZE 0
 #endif
 /* Let them override the alloc and free routines too.  */
+/* 可以自己定义内存管理函数 */
 #ifndef OBSTACK_CHUNK_ALLOC
 #define OBSTACK_CHUNK_ALLOC xmalloc
 #endif
@@ -46,17 +53,19 @@ static void ht_expand PARAMS((hash_table *));
 #endif
 
 /* Initialise an obstack.  */
+/* 初始化obstack（对象栈） */
 void
 gcc_obstack_init(obstack)
 struct obstack *obstack;
 {
+	/* 初始化obstack结构，设置默认大小和内存获取函数和内存释放函数 */
 	_obstack_begin(obstack, OBSTACK_CHUNK_SIZE, 0,
 		(void *(*) PARAMS((long))) OBSTACK_CHUNK_ALLOC,
 		(void(*) PARAMS((void *))) OBSTACK_CHUNK_FREE);
 }
 
 /* Calculate the hash of the string STR of length LEN.  */
-
+/* 计算长度为len的字符串的哈希值 */
 static unsigned int
 calc_hash(str, len)
 const unsigned char *str;
@@ -64,6 +73,7 @@ unsigned int len;
 {
 	unsigned int n = len;
 	unsigned int r = 0;
+	/* 哈希计算方式：hash = hash × 67 +　char - 113 */
 #define HASHSTEP(r, c) ((r) * 67 + ((c) - 113));
 
 	while (n--)
@@ -74,33 +84,39 @@ unsigned int len;
 }
 
 /* Initialize an identifier hashtable.  */
-
+/* 初始化标识符哈希表，用来存放标识符 */
 hash_table *
 ht_create(order)
 unsigned int order;
 {
+	/* order指的是2的幂 */
 	unsigned int nslots = 1 << order;
 	hash_table *table;
 
+	/* 申请哈希表指针空间 */
 	table = (hash_table *)xmalloc(sizeof (hash_table));
 	memset(table, 0, sizeof (hash_table));
 
 	/* Strings need no alignment.  */
+	/* 初始化结构和obstack */
 	gcc_obstack_init(&table->stack);
 	obstack_alignment_mask(&table->stack) = 0;
 
+	/* 分配哈希表存储空间，大小为节点数目×节点大小 */
 	table->entries = (hashnode *)xcalloc(nslots, sizeof (hashnode));
 	table->nslots = nslots;
 	return table;
 }
 
 /* Frees all memory associated with a hash table.  */
-
+/* 释放哈希表所有相关空间 */
 void
 ht_destroy(table)
 hash_table *table;
 {
+	/* obstack的释放函数 */
 	obstack_free(&table->stack, NULL);
+	/* 释放xcalloc得到的空间 */
 	free(table->entries);
 	free(table);
 }
@@ -113,6 +129,7 @@ returns NULL.  Otherwise insert and returns a new entry.  A new
 string is alloced if INSERT is CPP_ALLOC, otherwise INSERT is
 CPP_ALLOCED and the item is assumed to be at the top of the
 obstack.  */
+/* 查找哈希节点，找不到的话根据insert的值来确定是否新建该节点 */
 hashnode
 ht_lookup(table, str, len, insert)
 hash_table *table;
@@ -120,52 +137,71 @@ const unsigned char *str;
 unsigned int len;
 enum ht_lookup_option insert;
 {
+	/* 计算出目标哈希值 */
 	unsigned int hash = calc_hash(str, len);
 	unsigned int hash2;
 	unsigned int index;
 	size_t sizemask;
 	hashnode node;
 
+	/* 将哈希数值转换成索引 */
 	sizemask = table->nslots - 1;
 	index = hash & sizemask;
 
 	/* hash2 must be odd, so we're guaranteed to visit every possible
 	location in the table during rehashing.  */
+	/* hash2 必须是个奇数，才能确保在重新hash的时候能访问所有可能的位置 */
 	hash2 = ((hash * 17) & sizemask) | 1;
+	/* 记录查找次数 */
 	table->searches++;
 
 	for (;;)
 	{
+		/* 获取索引相同的节点 */
 		node = table->entries[index];
 
+		/* 节点为空，未使用过，目标一定不在哈希表中 */
 		if (node == NULL)
 			break;
 
+		/* 比较目标与结果的实际值，确定搜索结果 */
 		if (HT_LEN(node) == len && !memcmp(HT_STR(node), str, len))
 		{
 			if (insert == HT_ALLOCED)
 				/* The string we search for was placed at the end of the
 				obstack.  Release it.  */
+				/* 搜索的目标字符串分配在obstack的最后，找到哈希表中已经存在该字符串，为避免冗余进行释放 */
 				obstack_free(&table->stack, (PTR)str);
+			/* 返回结果 */
 			return node;
 		}
 
+		/* 再次哈希 */
 		index = (index + hash2) & sizemask;
+		/* 记录冲突次数 */
 		table->collisions++;
 	}
 
+	/* 未找到节点 */
+	
+	/* 指明不要插入，直接返回NULL */
 	if (insert == HT_NO_INSERT)
 		return NULL;
 
+	/* 默认为插入，将搜索的目标作为新节点放入哈希表 */
 	node = (*table->alloc_node) (table);
 	table->entries[index] = node;
 
+	/* 设置属性 */
 	HT_LEN(node) = len;
+	/* 是否需要分配空间 */
 	if (insert == HT_ALLOC)
+		/* 用栈增长的方式将字符串保存到栈空间的尾部 */
 		HT_STR(node) = obstack_copy0(&table->stack, str, len);
 	else
 		HT_STR(node) = str;
 
+	/* 当已用空间达到一定比例时要扩展哈希表 */
 	if (++table->nelements * 4 >= table->nslots * 3)
 		/* Must expand the string table.  */
 		ht_expand(table);
