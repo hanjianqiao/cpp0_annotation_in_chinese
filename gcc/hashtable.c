@@ -206,11 +206,12 @@ enum ht_lookup_option insert;
 		/* Must expand the string table.  */
 		ht_expand(table);
 
+	/* 返回结果 */
 	return node;
 }
 
 /* Double the size of a hash table, re-hashing existing entries.  */
-
+/* 扩展哈希表空间大小至原大小的两倍，重新哈希已存在的哈希表项 */
 static void
 ht_expand(table)
 hash_table *table;
@@ -218,21 +219,25 @@ hash_table *table;
 	hashnode *nentries, *p, *limit;
 	unsigned int size, sizemask;
 
+	/* 两倍大小 */
 	size = table->nslots * 2;
 	nentries = (hashnode *)xcalloc(size, sizeof (hashnode));
 	sizemask = size - 1;
 
 	p = table->entries;
 	limit = p + table->nslots;
+	/* 遍历，将所有已存在项目重新哈希并存放新的哈希表中 */
 	do
-	if (*p)
+	if (*p)  /* 该项存在... */
 	{
 		unsigned int index, hash, hash2;
 
+		/* 字符串哈希值 */
 		hash = calc_hash(HT_STR(*p), HT_LEN(*p));
 		hash2 = ((hash * 17) & sizemask) | 1;
 		index = hash & sizemask;
 
+		/* 找到哈希表项存放 */
 		for (;;)
 		{
 			if (!nentries[index])
@@ -240,12 +245,13 @@ hash_table *table;
 				nentries[index] = *p;
 				break;
 			}
-
+			/* 再哈希找到可用位置 */
 			index = (index + hash2) & sizemask;
 		}
 	}
 	while (++p < limit);
 
+	/* 释放原表空间 */
 	free(table->entries);
 	table->entries = nentries;
 	table->nslots = size;
@@ -253,6 +259,7 @@ hash_table *table;
 
 /* For all nodes in TABLE, callback CB with parameters TABLE->PFILE,
 the node, and V.  */
+/* 对所有表节点进行指定参数的函数回调 */
 void
 ht_forall(table, cb, v)
 hash_table *table;
@@ -266,6 +273,7 @@ const PTR v;
 	do
 	if (*p)
 	{
+		/* 回调函数，等于零终止 */
 		if ((*cb) (table->pfile, *p, v) == 0)
 			break;
 	}
@@ -273,7 +281,7 @@ const PTR v;
 }
 
 /* Dump allocation statistics to stderr.  */
-
+/* 输出统计信息到标准错误输出 */
 void
 ht_dump_statistics(table)
 hash_table *table;
@@ -293,6 +301,8 @@ hash_table *table;
 	total_bytes = longest = sum_of_squares = nids = 0;
 	p = table->entries;
 	limit = p + table->nslots;
+	
+	/* 统计哈希表中的信息 */
 	do
 	if (*p)
 	{
@@ -310,6 +320,7 @@ hash_table *table;
 	overhead = obstack_memory_used(&table->stack) - total_bytes;
 	headers = table->nslots * sizeof (hashnode);
 
+	/* 进行输出 */
 	fprintf(stderr, "\nString pool\nentries\t\t%lu\n",
 		(unsigned long)nelts);
 	fprintf(stderr, "identifiers\t%lu (%.2f%%)\n",
@@ -340,6 +351,7 @@ hash_table *table;
 
 /* Return the approximate positive square root of a number N.  This is for
 statistical reports, not code generation.  */
+/* 二分法逼近求一个数的算术平方根 */
 double
 approx_sqrt(x)
 double x;
