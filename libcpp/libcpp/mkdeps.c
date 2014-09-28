@@ -29,12 +29,14 @@ easy to start making assumptions.  */
 /* 将这个结构体保存在本文件内，这样用户就不容易使用断言了 */
 struct deps
 {
+	/* 目标槽数组指针 */
 	const char **targetv;
 	/* 实际占用的槽数 */
 	unsigned int ntargets;	/* number of slots actually occupied */
 	/* 总的空间大小，以字为单位 */
 	unsigned int targets_size;	/* amt of allocated space - in words */
 
+	/* dep的槽数值指针 */
 	const char **depv;
 	unsigned int ndeps;
 	unsigned int deps_size;
@@ -126,6 +128,7 @@ const char *filename;
 }
 
 /* Public routines.  */
+/* 公共例程，申请deps结构体并初始化其结构 */
 
 struct deps *
 	deps_init()
@@ -133,18 +136,25 @@ struct deps *
 		struct deps *d = (struct deps *) xmalloc(sizeof (struct deps));
 
 		/* Allocate space for the vectors only if we need it.  */
+		/* 当需要向量空间是才分配空间，这里就简单设置一下数值。 */
 
+		/* 指针初始化为NULL */
 		d->targetv = 0;
 		d->depv = 0;
 
+		/* 目标的槽数为零 */
 		d->ntargets = 0;
+		/* 分配的目标空间为零 */
 		d->targets_size = 0;
+		/* deps结构体个数为零 */
 		d->ndeps = 0;
+		/* deps大小 */
 		d->deps_size = 0;
 
 		return d;
 	}
 
+/* 释放deps的全部空间，包括结构本身空间 */
 void
 deps_free(d)
 struct deps *d;
@@ -152,30 +162,40 @@ struct deps *d;
 	unsigned int i;
 
 	if (d->targetv)
+	/* 释放targetv（使用的槽）的空间 */
 	{
+		/* 逐个释放空间 */
 		for (i = 0; i < d->ntargets; i++)
 			free((PTR)d->targetv[i]);
+		/* 释放指针数组空间 */
 		free(d->targetv);
 	}
 
 	if (d->depv)
+	/* 释放depv的空间 */
 	{
+		/* 逐个释放空间 */
 		for (i = 0; i < d->ndeps; i++)
 			free((PTR)d->depv[i]);
+		/* 指针数组空间也要释放 */
 		free(d->depv);
 	}
 
+	/* 释放结构本身空间 */
 	free(d);
 }
 
 /* Adds a target T.  We make a copy, so it need not be a permanent
 string.  QUOTE is true if the string should be quoted.  */
+/* 添加一个目标T。我们将目标复制进来，这样就不用担心目标不是一个持久性的字符串。。
+如果字符串需要进行引用处理的话，QUOTE的值应该为真。 */
 void
 deps_add_target(d, t, quote)
 struct deps *d;
 const char *t;
 int quote;
 {
+	/* 如果空间满了，扩展空间为之前的两倍加4 */
 	if (d->ntargets == d->targets_size)
 	{
 		d->targets_size = d->targets_size * 2 + 4;
@@ -183,37 +203,45 @@ int quote;
 			d->targets_size * sizeof (const char *));
 	}
 
+	/* 这两种方式都会产生一个字符串t的备份 */
 	if (quote)
 		t = munge(t);  /* Also makes permanent copy.  */
 	else
 		t = xstrdup(t);
 
+	/* 将字符串加入数组 */
 	d->targetv[d->ntargets++] = t;
 }
 
 /* Sets the default target if none has been given already.  An empty
 string as the default target in interpreted as stdin.  The string
 is quoted for MAKE.  */
+/* 没有目标的时候设置默认目标。 */
 void
 deps_add_default_target(d, tgt)
 struct deps *d;
 const char *tgt;
 {
 	/* Only if we have no targets.  */
+	/* 空的时候才执行 */
 	if (d->ntargets)
 		return;
 
 	if (tgt[0] == '\0')
+		/* 空字符串转换为"-" */
 		deps_add_target(d, "-", 1);
 	else
+	/* 字符串不为空 */
 	{
 #ifndef TARGET_OBJECT_SUFFIX
 # define TARGET_OBJECT_SUFFIX ".o"
 #endif
+		/* 不带修饰的文件名 */
 		const char *start = lbasename(tgt);
 		char *o = (char *)alloca(strlen(start) + strlen(TARGET_OBJECT_SUFFIX) + 1);
 		char *suffix;
 
+		/* 修改目标文件格式 */
 		strcpy(o, start);
 
 		suffix = strrchr(o, '.');
@@ -221,10 +249,12 @@ const char *tgt;
 			suffix = o + strlen(o);
 		strcpy(suffix, TARGET_OBJECT_SUFFIX);
 
+		/* 添加到数组中 */
 		deps_add_target(d, o, 1);
 	}
 }
 
+/* 添加字符串到dep数组中 */
 void
 deps_add_dep(d, t)
 struct deps *d;
