@@ -24,6 +24,21 @@ what you give them.   Help stamp out software-hoarding!  */
 #include "system.h"
 #include "mkdeps.h"
 
+/*
+ * 这个文件的代码是建立make程序使用的makefile文件
+ * 的依赖关系的。
+ * 可以输出到文件中。
+ *
+ * 但是这部分代码仅涉及将目标文件名和依赖文件名
+ * 的处理，至于执行的动作则没有涉及。
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 /* Keep this structure local to this file, so clients don't find it
 easy to start making assumptions.  */
 /* 将这个结构体保存在本文件内，这样用户就不容易使用断言了 */
@@ -36,7 +51,7 @@ struct deps
 	/* 总的空间大小，以字为单位 */
 	unsigned int targets_size;	/* amt of allocated space - in words */
 
-	/* dep的槽数值指针 */
+	/* dep（依赖）的槽数值指针 */
 	const char **depv;
 	unsigned int ndeps;
 	unsigned int deps_size;
@@ -146,7 +161,7 @@ struct deps *
 		d->ntargets = 0;
 		/* 分配的目标空间为零 */
 		d->targets_size = 0;
-		/* deps结构体个数为零 */
+		/* deps（依赖）结构体个数为零 */
 		d->ndeps = 0;
 		/* deps大小 */
 		d->deps_size = 0;
@@ -162,7 +177,7 @@ struct deps *d;
 	unsigned int i;
 
 	if (d->targetv)
-	/* 释放targetv（使用的槽）的空间 */
+	/* 释放targetv（目标的槽）的空间 */
 	{
 		/* 逐个释放空间 */
 		for (i = 0; i < d->ntargets; i++)
@@ -172,7 +187,7 @@ struct deps *d;
 	}
 
 	if (d->depv)
-	/* 释放depv的空间 */
+	/* 释放depv（依赖向量）的空间 */
 	{
 		/* 逐个释放空间 */
 		for (i = 0; i < d->ndeps; i++)
@@ -254,23 +269,27 @@ const char *tgt;
 	}
 }
 
-/* 添加字符串到dep数组中 */
+/* 添加字符串到dep（依赖）数组中 */
 void
 deps_add_dep(d, t)
 struct deps *d;
 const char *t;
 {
+	/* 文件名引用处理 */
 	t = munge(t);  /* Also makes permanent copy.  */
 
+	/* 空间满了，扩展为原来两倍加8 */
 	if (d->ndeps == d->deps_size)
 	{
 		d->deps_size = d->deps_size * 2 + 8;
 		d->depv = (const char **)
 			xrealloc(d->depv, d->deps_size * sizeof (const char *));
 	}
+	/* 记录下字符串 */
 	d->depv[d->ndeps++] = t;
 }
 
+/* 输出目标文件名及其依赖 */
 void
 deps_write(d, fp, colmax)
 const struct deps *d;
@@ -280,10 +299,12 @@ unsigned int colmax;
 	unsigned int size, i, column;
 
 	column = 0;
+	/* 最小为34 */
 	if (colmax && colmax < 34)
 		colmax = 34;
 
 	for (i = 0; i < d->ntargets; i++)
+	/* 将目标数组的字符串按顺序输出，以空格分隔 */
 	{
 		size = strlen(d->targetv[i]);
 		column += size;
@@ -300,11 +321,13 @@ unsigned int colmax;
 		fputs(d->targetv[i], fp);
 	}
 
+	/* 冒号空格 */
 	putc(':', fp);
 	putc(' ', fp);
 	column += 2;
 
 	for (i = 0; i < d->ndeps; i++)
+	/* 将依赖的字符串数组顺序输出，空格分隔。 */
 	{
 		size = strlen(d->depv[i]);
 		column += size;
@@ -320,9 +343,11 @@ unsigned int colmax;
 		}
 		fputs(d->depv[i], fp);
 	}
+	/* 末尾换行。 */
 	putc('\n', fp);
 }
 
+/* 向文件输出虚拟目标 */
 void
 deps_phony_targets(d, fp)
 const struct deps *d;
@@ -330,6 +355,15 @@ FILE *fp;
 {
 	unsigned int i;
 
+	/* 将所有的依赖输出为：
+		dep1:
+		
+		dep2:
+		
+		dep3:
+	这样的格式。
+	
+	 */
 	for (i = 1; i < d->ndeps; i++)
 	{
 		putc('\n', fp);
