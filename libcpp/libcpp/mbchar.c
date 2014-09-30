@@ -47,7 +47,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 typedef enum {
 	ESCAPE, DOLLAR, BRACKET, AT, B, J, NUL, JIS_CHAR, OTHER,
 	JIS_C_NUM
-} JIS_CHAR_TYPE;
+} 从;
 
 /* JIS状态 */
 typedef enum {
@@ -233,6 +233,7 @@ size_t n;
 		size_t i, curr_ch;
 
 		if (s == NULL)
+		/* s为空，默认编码方式为ASCII，返回1。 */
 		{
 			save_state = ASCII;
 			/* State-dependent.  */
@@ -241,10 +242,13 @@ size_t n;
 
 		ptr = t;
 
+		/* 对s指向的字符串中的每一个字符进行处理。 */
 		for (i = 0; i < n; i++)
 		{
+			/* 取一个字节字符 */
 			curr_ch = t[i];
 			switch (curr_ch)
+			/* 确定当前的字符的类型 */
 			{
 			case JIS_ESC_CHAR:
 				ch = ESCAPE;
@@ -267,54 +271,57 @@ size_t n;
 			case '\0':
 				ch = NUL;
 				break;
-			default:
+			default:/* 其他字符是JIS_CHAR和OTHER类型 */
 				if (ISJIS(curr_ch))
 					ch = JIS_CHAR;
 				else
 					ch = OTHER;
 			}
 
+			/* 根据字符类型（ch）和当前状态找到对应的动作和状态转移目标 */
 			action = JIS_action_table[curr_state][ch];
 			curr_state = JIS_state_table[curr_state][ch];
 
 			switch (action)
+			/* 根据动作处理 */
 			{
-			case NOOP:
+			case NOOP:/* 空操作，什么都不做。 */
 				break;
 
-			case EMPTY:
+			case EMPTY:/* 空字符 */
 				if (pwc != NULL)
 					*pwc = (wchar_t)0;
 
-				save_state = curr_state;
+				save_state = curr_state;/* OK，保存当前状态。 */
 				return i;
 
-			case COPYA:
+			case COPYA:/* 复制字符ASCII */
 				if (pwc != NULL)
 					*pwc = (wchar_t)*ptr;
-				save_state = curr_state;
+				save_state = curr_state;/* OK，保存当前状态。 */
 				return i + 1;
 
-			case COPYJ:
+			case COPYJ:/* 复制字符SJIS1 */
 				if (pwc != NULL)
 					*pwc = (((wchar_t)*ptr) << 8) + (wchar_t)(*(ptr + 1));
 
-				save_state = curr_state;
+				save_state = curr_state;/* OK，保存当前状态。 */
 				return i + 1;
 
-			case COPYJ2:
+			case COPYJ2:/* 复制字符SJIS2 */
 				if (pwc != NULL)
 					*pwc = (((wchar_t)*ptr) << 8) + (wchar_t)(*(ptr + 1));
 
-				save_state = curr_state;
+				save_state = curr_state;/* OK，保存当前状态。 */
 				return ptr - t + 2;
 
 			case MAKE_A:
 			case MAKE_J:
+				/* 移动ptr指针 */
 				ptr = (const unsigned char *)(t + i + 1);
 				break;
 
-			case ERROR:
+			case ERROR:/* 错误和意外的动作。 */
 			default:
 				return -1;
 			}
