@@ -1,3 +1,5 @@
+/* cpp0/gcc 里有更完整注释的版本 */
+
 /* Hash tables.
    Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
