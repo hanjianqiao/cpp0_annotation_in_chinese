@@ -354,6 +354,8 @@ valid character, or 0 if S is null or points to a null byte.
 This function behaves like the Standard C function mblen, except
 it treats locale names of the form "C-..." specially.  */
 
+/* 获取s开头的多字节字符大小。 */
+
 int
 local_mblen(s, n)
 const char *s;
@@ -366,6 +368,8 @@ size_t n;
 
 This function returns the same value as the Standard C macro MB_CUR_MAX,
 except it treats locale names of the form "C-..." specially.  */
+
+/* 获取多字节字符的最大大小 */
 
 int
 local_mb_cur_max()
