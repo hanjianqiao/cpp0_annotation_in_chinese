@@ -206,6 +206,7 @@ int path;
 heap; this routine takes responsibility for freeing it.  CXX_AWARE
 is non-zero if the header contains extern "C" guards for C++,
 otherwise it is zero.  */
+/* 将dir添加到引用路径中。 */
 static void
 append_include_chain(pfile, dir, path, cxx_aware)
 cpp_reader *pfile;
@@ -283,6 +284,7 @@ int cxx_aware ATTRIBUTE_UNUSED;
 /* Handle a duplicated include path.  PREV is the link in the chain
 before the duplicate.  The duplicate is removed from the chain and
 freed.  Returns PREV.  */
+/* 处理重复路径。 */
 static struct search_path *
 remove_dup_dir(pfile, prev)
 cpp_reader *pfile;
@@ -304,6 +306,7 @@ struct search_path *prev;
 chain, or NULL if the chain is empty.  This algorithm is quadratic
 in the number of -I switches, which is acceptable since there
 aren't usually that many of them.  */
+/* 去除重复的路径。 */
 static struct search_path *
 remove_dup_dirs(pfile, head)
 cpp_reader *pfile;
@@ -343,6 +346,7 @@ system, after.  Remove duplicate dirs (as determined by
 INO_T_EQ()).  The system_include and after_include chains are never
 referred to again after this function; all access is through the
 bracket_include path.  */
+/* 合并应用路径，并去重。 */
 static void
 merge_include_chains(pfile)
 cpp_reader *pfile;
@@ -581,6 +585,7 @@ enum c_lang lang;
 
 /* Free resources used by PFILE.  Accessing PFILE after this function
 returns leads to undefined behaviour.  Returns the error count.  */
+/* 释放pfile占用的空间 */
 int
 cpp_destroy(pfile)
 cpp_reader *pfile;
@@ -734,6 +739,7 @@ static const struct named_op
 #undef B
 
 /* Mark the C++ named operators in the hash table.  */
+/* 在哈希表中标记C++命名的操作符。 */
 static void
 mark_named_operators(pfile)
 cpp_reader *pfile;
@@ -752,6 +758,7 @@ cpp_reader *pfile;
 
 /* Subroutine of cpp_read_main_file; reads the builtins table above and
 enters them, and language-specific macros, into the hash table.  */
+/* 初始化内嵌的指令。 */
 static void
 init_builtins(pfile)
 cpp_reader *pfile;
@@ -827,6 +834,7 @@ cpp_reader *pfile;
 #undef builtin_array_end
 
 /* And another subroutine.  This one sets up the standard include path.  */
+/* 设置标准引用路径。 */
 static void
 init_standard_includes(pfile)
 cpp_reader *pfile;
@@ -841,6 +849,7 @@ cpp_reader *pfile;
 	etc. specify an additional list of directories to be searched as
 	if specified with -isystem, for the language indicated.  */
 
+	/* 从环境变量获取路径 */
 	GET_ENV_PATH_LIST(path, "CPATH");
 	if (path != 0 && *path != 0)
 		path_include(pfile, path, BRACKET);
@@ -958,6 +967,8 @@ struct pending_option *head;
 processed.  Setup for processing input from the file named FNAME,
 or stdin if it is the empty string.  Return the original filename
 on success (e.g. foo.i->foo.c), or NULL on failure.  */
+/* 选项处理完之后调用该函数。
+为分析代码进行准备。*/
 const char *
 cpp_read_main_file(pfile, fname, table)
 cpp_reader *pfile;
@@ -971,7 +982,7 @@ hash_table *table;
 	_cpp_init_hashtable(pfile, table);
 
 	/* Set up the include search path now.  */
-	/* 设置引用路径 */
+	/* 设置标准引用路径 */
 	if (!CPP_OPTION(pfile, no_standard_includes))
 		init_standard_includes(pfile);
 
@@ -994,6 +1005,7 @@ hash_table *table;
 
 	if (CPP_OPTION(pfile, print_deps))
 		/* Set the default target (if there is none already).  */
+	/* 如果没有默认不表，设置默认目标。 */
 		deps_add_default_target(pfile->deps, fname);
 
 	/* Open the main input file.  */
@@ -1017,6 +1029,7 @@ hash_table *table;
 handle the directive so we know the original file name.  This will
 generate file_change callbacks, which the front ends must handle
 appropriately given their state of initialization.  */
+/* 处理#line指令。 */
 static void
 read_original_filename(pfile)
 cpp_reader *pfile;
@@ -1046,6 +1059,7 @@ cpp_reader *pfile;
 /* Handle pending command line options: -D, -U, -A, -imacros and
 -include.  This should be called after debugging has been properly
 set up in the front ends.  */
+/* 处理命令行指令。 */
 void
 cpp_finish_options(pfile)
 cpp_reader *pfile;
@@ -1174,6 +1188,7 @@ cpp_reader *pfile;
 last buffer and writes dependency output.  It should also
 clear macro definitions, such that you could call cpp_start_read
 with a new filename to restart processing.  */
+/* CPP结束。 */
 void
 cpp_finish(pfile)
 cpp_reader *pfile;
@@ -1858,6 +1873,7 @@ int ignore;
 Can be called multiple times, to handle multiple sets of options.
 Returns if an unrecognized option is seen.
 Returns number of strings consumed.  */
+/* 处理命令行参数。 */
 int
 cpp_handle_options(pfile, argc, argv)
 cpp_reader *pfile;
@@ -1868,6 +1884,7 @@ char **argv;
 	int strings_processed;
 
 	for (i = 0; i < argc; i += strings_processed)
+		/* 处理参数 */
 	{
 		strings_processed = cpp_handle_option(pfile, argc - i, argv + i, 1);
 		if (strings_processed == 0)
@@ -1879,6 +1896,9 @@ char **argv;
 
 /* Extra processing when all options are parsed, after all calls to
 cpp_handle_option[s].  Consistency checks etc.  */
+/* 所有的选项被处理过之后的额外处理，
+在此之前对邋cpp_handle_option[s]进行过调用。
+主要的功能是设置一些变量值。 */
 void
 cpp_post_options(pfile)
 cpp_reader *pfile;

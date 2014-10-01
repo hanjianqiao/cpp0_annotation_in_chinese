@@ -1330,6 +1330,7 @@ cpp_reader *pfile;
 
 /* Read each token in, until EOF.  Directives are transparently
 processed.  */
+/* 知道EOF才结束。 */
 void
 cpp_scan_nooutput(pfile)
 cpp_reader *pfile;

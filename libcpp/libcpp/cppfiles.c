@@ -167,6 +167,7 @@ cpp_reader *pfile;
 }
 
 /* Tear down the splay tree.  */
+/* 释放引用树 */
 void
 _cpp_cleanup_includes(pfile)
 cpp_reader *pfile;
@@ -256,7 +257,7 @@ open_file(pfile, filename)
 cpp_reader *pfile;
 const char *filename;
 {
-	/* 获取文件在蓙E故鞯慕诘丒*/
+	/* 获取文件在伸展树的节。*/
 	splay_tree_node nd = find_or_create_entry(pfile, filename);
 	struct include_file *file = (struct include_file *) nd->value;
 
@@ -794,6 +795,7 @@ const cpp_token *header;
 /* Push an input buffer and load it up with the contents of FNAME.  If
 FNAME is "", read standard input.  Return true if a buffer was
 stacked.  */
+/* 读取文件 */
 bool
 _cpp_read_file(pfile, fname)
 cpp_reader *pfile;

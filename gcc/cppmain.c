@@ -200,7 +200,7 @@ char **argv;
 	}
 
 
-	/* 设置pfile的呼叫函数，
+	/* 设置pfile的回调函数，
 	  * 就是设置当遇到#include之类的代码时调用哪个函数
 	  */
 	setup_callbacks();

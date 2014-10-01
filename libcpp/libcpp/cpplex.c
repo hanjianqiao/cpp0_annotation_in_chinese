@@ -1573,6 +1573,7 @@ enum cpp_ttype type;
 /* Writes the spelling of token to FP, without any preceding space.
 Separated from cpp_spell_token for efficiency - to avoid stdio
 double-buffering.  */
+/*  ‰≥ˆtoken°£ */
 void
 cpp_output_token(token, fp)
 const cpp_token *token;
@@ -2257,6 +2258,7 @@ size_t min_extra;
 }
 
 /* Free a chain of buffers starting at BUFF.  */
+/*  Õ∑≈ª∫≥Â¡¥ */
 void
 _cpp_free_buff(buff)
 _cpp_buff *buff;
